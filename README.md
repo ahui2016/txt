@@ -1,2 +1,14 @@
 # txt
-A simple web page for text copy and paste.
+
+A simple web page for text copy and paste, with a CLI tool.  
+一个简单的纯文本复制黏贴网站 + 一个命令行工具
+
+- 只能收发纯文本
+- 上限 1000 条，超过上限则自动删除最早的消息
+- 每条消息上限 1024 bytes
+- 每条消息均可单独编辑、删除、复制
+- 可在线添加新消息
+- 主密码的唯一功能是生成 key, 其他操作需要使用 key
+- 每个 key 的有效期是 30 天
+- 网页提供搜索功能, CLI 提供受限制的搜索功能（向 CLI 返回搜索结果的上限是 10 条）
+- 只检查是否与上一条消息内容相同，不检查历史消息

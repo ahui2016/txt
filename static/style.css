@@ -1,0 +1,128 @@
+hr {
+  margin-top: 0;
+}
+
+.form-label {
+  font-weight: bold;
+  display: block;
+}
+
+.form-textinput-fat {
+  margin-bottom: 0;
+  display: block;
+  width: 95%;
+}
+
+.form-textarea {
+  margin-bottom: 0;
+  resize: vertical;
+}
+
+.form-text {
+  font-size: .75em;
+}
+
+.alert {
+  font-size: .75em;
+}
+
+.text-center {
+  text-align: center;
+}
+.text-right {
+  text-align: right;
+}
+.font-bold {
+  font-weight: bold;
+}
+
+.HistoryItem,
+.MimaItem {
+  margin-bottom: 1.5rem;
+}
+
+.ColorPassword {
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: bold;
+  font-size: 2rem;
+  letter-spacing: 3px;
+}
+
+.Footer,
+.FooterLink {
+  margin-top: 5rem;
+  margin-bottom: 5rem;
+  text-align: center;
+  font-size: .75rem;
+  text-decoration: none;
+  color: grey !important;
+}
+
+.pl-2 {
+  padding-left: 0.5rem;
+}
+.ml-1 {
+  margin-left: 0.25rem;
+}
+.ml-2 {
+  margin-left: 0.5rem;
+}
+.ml-3 {
+  margin-left: 1rem;
+}
+.mt-2 {
+  margin-top: 0.5rem;
+}
+.mt-3 {
+  margin-top: 1rem;
+}
+.mt-5 {
+  margin-top: 3rem;
+}
+.mb-0 {
+  margin-bottom: 0;
+}
+.mb-3 {
+  margin-bottom: 1rem;
+}
+.mb-4 {
+  margin-bottom: 2rem;
+}
+.mb-5 {
+  margin-bottom: 3rem;
+}
+.my-3 {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+.my-5 {
+  margin-top: 3rem;
+  margin-bottom: 3rem;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --background-color: #fefefe;
+    --border-color: #71717a;
+    --default-color: #454545;
+    --grey: #a1a1aa;
+  }
+  .alert-primary {
+    color: black;
+  }
+  .alert-info {
+    color: blue;
+  }
+  .text-grey,
+  .form-text {
+    color: var(--grey);
+  }
+}
+
+/* 这两个颜色, light 与 dark 两个主题里都好看 */
+.alert-danger {
+  color: #e64980;
+}
+.alert-success {
+  color: #0ca678;
+}
