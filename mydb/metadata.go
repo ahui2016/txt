@@ -1,15 +1,20 @@
 package mydb
 
 import (
-	"database/sql"
-	"encoding/json"
+	"errors"
 
 	"github.com/ahui2016/txt/model"
-	"github.com/ahui2016/txt/stmt"
 	"github.com/ahui2016/txt/util"
+
+	"github.com/vmihailenco/msgpack/v5"
+	bolt "go.etcd.io/bbolt"
 )
 
+// https://github.com/vmihailenco/msgpack
+
 const (
+	txtmsg_bucket    = "txtmsg-bucket"
+	settings_bucket  = "settings-bucket"
 	txt_id_key       = "txt-id-key"
 	txt_id_prefix    = "T"
 	settings_key     = "settings-key"
@@ -25,104 +30,127 @@ var defaultSettings = Settings{
 	KeyMaxAge: DefaultKeyMaxAge,
 }
 
+var ErrNoResult = errors.New("Error_DB_NoResult")
+
 type (
 	Settings = model.Settings
 )
 
-func getTextValue(key string, tx TX) (value string, err error) {
-	row := tx.QueryRow(stmt.GetTextValue, key)
-	err = row.Scan(&value)
-	return
-}
-
-func updateTextValue(key, v string, tx TX) error {
-	_, err := tx.Exec(stmt.UpdateTextValue, v, key)
+func txCreateBucket(tx *bolt.Tx, name string) error {
+	_, err := tx.CreateBucketIfNotExists([]byte(name))
 	return err
 }
 
-func getIntValue(key string, tx TX) (value int64, err error) {
-	row := tx.QueryRow(stmt.GetIntValue, key)
-	err = row.Scan(&value)
+func (db *DB) CreateBuckets() error {
+	tx := db.BeginWrite()
+	defer tx.Rollback()
+
+	e1 := txCreateBucket(tx, settings_bucket)
+	e2 := txCreateBucket(tx, txtmsg_bucket)
+	if err := util.WrapErrors(e1, e2); err != nil {
+		return err
+	}
+	return tx.Commit()
+}
+
+func putBytes(bucket *bolt.Bucket, key string, v []byte) error {
+	return bucket.Put([]byte(key), v)
+}
+
+func putString(bucket *bolt.Bucket, key string, v string) error {
+	return bucket.Put([]byte(key), []byte(v))
+}
+
+func txPutBytes(tx *bolt.Tx, bucket, key string, v []byte) error {
+	b := tx.Bucket([]byte(bucket))
+	return b.Put([]byte(key), v)
+}
+
+func txPutString(tx *bolt.Tx, bucket, key string, v string) error {
+	b := tx.Bucket([]byte(bucket))
+	return b.Put([]byte(key), []byte(v))
+}
+
+func txPutObject(tx *bolt.Tx, bucket, key string, v interface{}) error {
+	b := tx.Bucket([]byte(bucket))
+	data, err := msgpack.Marshal(v)
+	if err != nil {
+		return err
+	}
+	return b.Put([]byte(key), data)
+}
+
+func (db *DB) getBytes(bucket, key string) (v []byte, err error) {
+	err = db.DB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(bucket))
+		v = b.Get([]byte(key))
+		if v == nil {
+			return ErrNoResult
+		}
+		return nil
+	})
 	return
 }
 
-func updateIntValue(key string, v int64, tx TX) error {
-	_, err := tx.Exec(stmt.UpdateIntValue, v, key)
-	return err
+func (db *DB) getString(bucket, key string) (string, error) {
+	v, err := db.getBytes(bucket, key)
+	return string(v), err
 }
 
-func getCurrentID(key string, tx TX) (id model.ShortID, err error) {
-	strID, err := getTextValue(key, tx)
+func (db *DB) GetSettings() (s Settings, err error) {
+	data, err := db.getBytes(settings_bucket, settings_key)
+	if err != nil {
+		return
+	}
+	err = msgpack.Unmarshal(data, &s)
+	return
+}
+
+func (db *DB) getCurrentID(idkey string) (id model.ShortID, err error) {
+	strID, err := db.getString(settings_bucket, idkey)
 	if err != nil {
 		return
 	}
 	return model.ParseID(strID)
 }
 
-func initFirstID(key, prefix string, tx TX) (err error) {
-	if _, err = getCurrentID(key, tx); err != sql.ErrNoRows {
+func (db *DB) initFirstID(idkey, prefix string) error {
+	if _, err := db.getCurrentID(idkey); err != ErrNoResult {
 		return err
 	}
 	id, err := model.FirstID(prefix)
 	if err != nil {
 		return err
 	}
-	_, err = tx.Exec(stmt.InsertTextValue, key, id.String())
-	return
+	return db.DB.Update(func(tx *bolt.Tx) error {
+		return txPutString(tx, settings_bucket, txt_id_key, id.String())
+	})
 }
 
-func getNextID(tx TX, key string) (nextID string, err error) {
-	currentID, err := getCurrentID(key, tx)
+// genNextID generates a new ShortID.
+func (db *DB) genNextID(idkey string) (nextID string, err error) {
+	currentID, err := db.getCurrentID(idkey)
 	if err != nil {
 		return
 	}
 	nextID = currentID.Next().String()
-	err = updateTextValue(key, nextID, tx)
+	err = db.DB.Update(func(tx *bolt.Tx) error {
+		return txPutString(tx, settings_bucket, idkey, nextID)
+	})
 	return
 }
 
-func (db *DB) initTextEntry(k, v string) error {
-	if _, err := getTextValue(k, db.DB); err != sql.ErrNoRows {
+func (db *DB) initSettings() error {
+	if _, err := db.GetSettings(); err != ErrNoResult {
 		return err
 	}
-	return db.Exec(stmt.InsertTextValue, k, v)
-}
-
-func (db *DB) initIntEntry(k string, v int64) error {
-	if _, err := getIntValue(k, db.DB); err != sql.ErrNoRows {
-		return err
-	}
-	return db.Exec(stmt.InsertIntValue, k, v)
-}
-
-func (db *DB) initSettings(s Settings) error {
-	if _, err := getTextValue(settings_key, db.DB); err != sql.ErrNoRows {
-		return err
-	}
-	data64, err := util.Marshal64(s)
-	if err != nil {
-		return err
-	}
-	return db.Exec(stmt.InsertTextValue, settings_key, data64)
-}
-
-func (db *DB) GetSettings() (s Settings, err error) {
-	data64, err := getTextValue(settings_key, db.DB)
-	if err != nil {
-		return s, err
-	}
-	data, err := util.Base64Decode(data64)
-	if err != nil {
-		return s, err
-	}
-	err = json.Unmarshal(data, &s)
-	return
+	return db.DB.Update(func(tx *bolt.Tx) error {
+		return txPutObject(tx, settings_bucket, settings_key, defaultSettings)
+	})
 }
 
 func (db *DB) UpdateSettings(s Settings) error {
-	data64, err := util.Marshal64(s)
-	if err != nil {
-		return err
-	}
-	return updateTextValue(settings_key, data64, db.DB)
+	return db.DB.Update(func(tx *bolt.Tx) error {
+		return txPutObject(tx, settings_bucket, settings_key, s)
+	})
 }

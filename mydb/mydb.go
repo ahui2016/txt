@@ -1,34 +1,49 @@
 package mydb
 
 import (
-	"database/sql"
 	"fmt"
+	"time"
 
 	"github.com/ahui2016/txt/util"
 	_ "github.com/mattn/go-sqlite3"
+	bolt "go.etcd.io/bbolt"
 )
+
+//TODO https://github.com/etcd-io/bbolt
 
 type DB struct {
 	Path string
-	DB   *sql.DB
+	DB   *bolt.DB
 }
 
 func (db *DB) Open(dbPath string) (err error) {
-	db.DB, err = sql.Open("sqlite3", dbPath+"?_fk=1")
-	e1 := initFirstID(txt_id_key, txt_id_prefix, db.DB)
-	// e2 := db.initSettings(Settings{})
-	return util.WrapErrors(e1)
+	db.DB, err = bolt.Open(dbPath, 0600, &bolt.Options{Timeout: 1 * time.Second})
+	if err != nil {
+		return err
+	}
+	db.Path = dbPath
+	e1 := db.initFirstID(txt_id_key, txt_id_prefix)
+	e2 := db.initSettings()
+	return util.WrapErrors(e1, e2)
 }
 
-func (db *DB) mustBegin() *sql.Tx {
-	tx, err := db.DB.Begin()
+func (db *DB) BeginWrite() *bolt.Tx {
+	tx, err := db.DB.Begin(true)
 	util.Panic(err)
 	return tx
 }
 
-func (db *DB) Exec(query string, args ...interface{}) (err error) {
-	_, err = db.DB.Exec(query, args...)
-	return
+func (db *DB) BeginWriteBucket(name string) (*bolt.Tx, *bolt.Bucket) {
+	tx, err := db.DB.Begin(true)
+	util.Panic(err)
+	b := tx.Bucket([]byte(name))
+	return tx, b
+}
+
+func (db *DB) BeginRead() *bolt.Tx {
+	tx, err := db.DB.Begin(false)
+	util.Panic(err)
+	return tx
 }
 
 func (db *DB) CheckKey(key string) error {
