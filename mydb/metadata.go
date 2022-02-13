@@ -10,30 +10,35 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
+// https://github.com/etcd-io/bbolt
 // https://github.com/vmihailenco/msgpack
 
 const (
-	txtmsg_bucket    = "txtmsg-bucket"
-	settings_bucket  = "settings-bucket"
-	txt_id_key       = "txt-id-key"
-	txt_id_prefix    = "T"
-	settings_key     = "settings-key"
-	hour             = 60 * 60
-	day              = 24 * hour
-	DefaultKeyMaxAge = 30 * day
+	txtmsg_bucket       = "txtmsg-bucket"
+	config_bucket       = "config-bucket"
+	txt_id_key          = "txt-id-key"
+	txt_id_prefix       = "T"
+	config_key          = "config-key"
+	hour                = 60 * 60
+	day                 = 24 * hour
+	defaultKeyMaxAge    = 30 * day
+	defaultMsgSizeLimit = 1024
+	defaultMsgNumLimit  = 1000
 )
 
-var defaultSettings = Settings{
-	Password:  "abc",
-	Key:       util.RandomString(12), // 不需要太高的安全性
-	KeyStarts: util.TimeNow(),
-	KeyMaxAge: DefaultKeyMaxAge,
+var defaultConfig = Config{
+	Password:     "abc",
+	Key:          util.RandomString(12), // 不需要太高的安全性
+	KeyStarts:    util.TimeNow(),
+	KeyMaxAge:    defaultKeyMaxAge,
+	MsgSizeLimit: defaultMsgSizeLimit,
+	MsgNumLimit:  defaultMsgNumLimit,
 }
 
 var ErrNoResult = errors.New("Error_DB_NoResult")
 
 type (
-	Settings = model.Settings
+	Config = model.Config
 )
 
 func txCreateBucket(tx *bolt.Tx, name string) error {
@@ -45,7 +50,7 @@ func (db *DB) CreateBuckets() error {
 	tx := db.BeginWrite()
 	defer tx.Rollback()
 
-	e1 := txCreateBucket(tx, settings_bucket)
+	e1 := txCreateBucket(tx, config_bucket)
 	e2 := txCreateBucket(tx, txtmsg_bucket)
 	if err := util.WrapErrors(e1, e2); err != nil {
 		return err
@@ -97,17 +102,17 @@ func (db *DB) getString(bucket, key string) (string, error) {
 	return string(v), err
 }
 
-func (db *DB) GetSettings() (s Settings, err error) {
-	data, err := db.getBytes(settings_bucket, settings_key)
+func (db *DB) getConfig() (config Config, err error) {
+	data, err := db.getBytes(config_bucket, config_key)
 	if err != nil {
 		return
 	}
-	err = msgpack.Unmarshal(data, &s)
+	err = msgpack.Unmarshal(data, &config)
 	return
 }
 
 func (db *DB) getCurrentID(idkey string) (id model.ShortID, err error) {
-	strID, err := db.getString(settings_bucket, idkey)
+	strID, err := db.getString(config_bucket, idkey)
 	if err != nil {
 		return
 	}
@@ -123,7 +128,7 @@ func (db *DB) initFirstID(idkey, prefix string) error {
 		return err
 	}
 	return db.DB.Update(func(tx *bolt.Tx) error {
-		return txPutString(tx, settings_bucket, txt_id_key, id.String())
+		return txPutString(tx, config_bucket, txt_id_key, id.String())
 	})
 }
 
@@ -135,22 +140,38 @@ func (db *DB) genNextID(idkey string) (nextID string, err error) {
 	}
 	nextID = currentID.Next().String()
 	err = db.DB.Update(func(tx *bolt.Tx) error {
-		return txPutString(tx, settings_bucket, idkey, nextID)
+		return txPutString(tx, config_bucket, idkey, nextID)
 	})
 	return
 }
 
-func (db *DB) initSettings() error {
-	if _, err := db.GetSettings(); err != ErrNoResult {
+func (db *DB) initConfig() error {
+	config, err := db.getConfig()
+	if err == nil {
+		db.Config = config
+		return nil
+	}
+	if err != ErrNoResult {
 		return err
 	}
-	return db.DB.Update(func(tx *bolt.Tx) error {
-		return txPutObject(tx, settings_bucket, settings_key, defaultSettings)
+	// 剩下的唯一可能性就是 err == ErrNoResult
+	err = db.DB.Update(func(tx *bolt.Tx) error {
+		return txPutObject(tx, config_bucket, config_key, defaultConfig)
 	})
+	if err != nil {
+		return err
+	}
+	db.Config = defaultConfig
+	return nil
 }
 
-func (db *DB) UpdateSettings(s Settings) error {
-	return db.DB.Update(func(tx *bolt.Tx) error {
-		return txPutObject(tx, settings_bucket, settings_key, s)
+func (db *DB) UpdateConfig(config Config) error {
+	err := db.DB.Update(func(tx *bolt.Tx) error {
+		return txPutObject(tx, config_bucket, config_key, config)
 	})
+	if err != nil {
+		return err
+	}
+	db.Config = config
+	return nil
 }

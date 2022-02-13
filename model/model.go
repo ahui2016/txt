@@ -7,9 +7,11 @@ type TxtMsg struct {
 	MTime int64
 }
 
-type Settings struct {
-	Password  string // 主密码，唯一作用是生成 Key
-	Key       string // 日常使用的密钥
-	KeyStarts int64  // Key 的生效时间 (timestamp)
-	KeyMaxAge int64  // Key 的有效期（秒）
+type Config struct {
+	Password     string // 主密码，唯一作用是生成 Key
+	Key          string // 日常使用的密钥
+	KeyStarts    int64  // Key 的生效时间 (timestamp)
+	KeyMaxAge    int64  // Key 的有效期（秒）
+	MsgSizeLimit int64  // 每条消息的长度上限
+	MsgNumLimit  int64  // 消息条数上限
 }

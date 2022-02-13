@@ -12,8 +12,9 @@ import (
 //TODO https://github.com/etcd-io/bbolt
 
 type DB struct {
-	Path string
-	DB   *bolt.DB
+	Path   string
+	DB     *bolt.DB
+	Config Config
 }
 
 func (db *DB) Open(dbPath string) (err error) {
@@ -23,7 +24,7 @@ func (db *DB) Open(dbPath string) (err error) {
 	}
 	db.Path = dbPath
 	e1 := db.initFirstID(txt_id_key, txt_id_prefix)
-	e2 := db.initSettings()
+	e2 := db.initConfig()
 	return util.WrapErrors(e1, e2)
 }
 
@@ -47,14 +48,10 @@ func (db *DB) BeginRead() *bolt.Tx {
 }
 
 func (db *DB) CheckKey(key string) error {
-	s, err := db.GetSettings()
-	if err != nil {
-		return err
-	}
-	if key != s.Key {
+	if key != db.Config.Key {
 		return fmt.Errorf("wrong key")
 	}
-	if util.TimeNow() > s.KeyStarts+s.KeyMaxAge {
+	if util.TimeNow() > db.Config.KeyStarts+db.Config.KeyMaxAge {
 		return fmt.Errorf("the key is expired")
 	}
 	return nil

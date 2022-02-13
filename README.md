@@ -12,3 +12,4 @@ A simple web page for text copy and paste, with a CLI tool.
 - 每个 key 的有效期是 30 天
 - 网页提供搜索功能, CLI 提供受限制的搜索功能（向 CLI 返回搜索结果的上限是 10 条）
 - 只检查是否与上一条消息内容相同，不检查历史消息
+- 消息列表不分页，但只截取开头，需要点击才加载全文
