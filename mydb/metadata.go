@@ -35,7 +35,7 @@ var defaultConfig = Config{
 	MsgNumLimit:  defaultMsgNumLimit,
 }
 
-var ErrNoResult = errors.New("Error_DB_NoResult")
+var ErrNoResult = errors.New("error-database-no-result")
 
 type (
 	Config = model.Config
