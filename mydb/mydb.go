@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/ahui2016/txt/util"
-	_ "github.com/mattn/go-sqlite3"
 	bolt "go.etcd.io/bbolt"
 )
 
@@ -23,7 +22,7 @@ func (db *DB) Open(dbPath string) (err error) {
 		return err
 	}
 	db.Path = dbPath
-	e1 := db.initFirstID(txt_id_key, txt_id_prefix)
+	e1 := db.createBuckets()
 	e2 := db.initConfig()
 	return util.WrapErrors(e1, e2)
 }

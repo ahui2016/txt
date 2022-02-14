@@ -23,7 +23,7 @@ const (
 	day                 = 24 * hour
 	defaultKeyMaxAge    = 30 * day
 	defaultMsgSizeLimit = 1024
-	defaultMsgNumLimit  = 1000
+	defaultTempLimit    = 100
 )
 
 var defaultConfig = Config{
@@ -32,7 +32,7 @@ var defaultConfig = Config{
 	KeyStarts:    util.TimeNow(),
 	KeyMaxAge:    defaultKeyMaxAge,
 	MsgSizeLimit: defaultMsgSizeLimit,
-	MsgNumLimit:  defaultMsgNumLimit,
+	TempLimit:    defaultTempLimit,
 }
 
 var ErrNoResult = errors.New("error-database-no-result")
@@ -46,7 +46,7 @@ func txCreateBucket(tx *bolt.Tx, name string) error {
 	return err
 }
 
-func (db *DB) CreateBuckets() error {
+func (db *DB) createBuckets() error {
 	tx := db.BeginWrite()
 	defer tx.Rollback()
 
@@ -108,40 +108,6 @@ func (db *DB) getConfig() (config Config, err error) {
 		return
 	}
 	err = msgpack.Unmarshal(data, &config)
-	return
-}
-
-func (db *DB) getCurrentID(idkey string) (id model.ShortID, err error) {
-	strID, err := db.getString(config_bucket, idkey)
-	if err != nil {
-		return
-	}
-	return model.ParseID(strID)
-}
-
-func (db *DB) initFirstID(idkey, prefix string) error {
-	if _, err := db.getCurrentID(idkey); err != ErrNoResult {
-		return err
-	}
-	id, err := model.FirstID(prefix)
-	if err != nil {
-		return err
-	}
-	return db.DB.Update(func(tx *bolt.Tx) error {
-		return txPutString(tx, config_bucket, txt_id_key, id.String())
-	})
-}
-
-// genNextID generates a new ShortID.
-func (db *DB) genNextID(idkey string) (nextID string, err error) {
-	currentID, err := db.getCurrentID(idkey)
-	if err != nil {
-		return
-	}
-	nextID = currentID.Next().String()
-	err = db.DB.Update(func(tx *bolt.Tx) error {
-		return txPutString(tx, config_bucket, idkey, nextID)
-	})
 	return
 }
 

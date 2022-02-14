@@ -6,7 +6,8 @@ require (
 	github.com/gin-contrib/sessions v0.0.4
 	github.com/gin-contrib/static v0.0.1
 	github.com/gin-gonic/gin v1.7.7
-	github.com/mattn/go-sqlite3 v1.14.11
+	github.com/vmihailenco/msgpack/v5 v5.3.5
+	go.etcd.io/bbolt v1.3.6
 )
 
 require (
@@ -24,9 +25,7 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/ugorji/go/codec v1.2.6 // indirect
-	github.com/vmihailenco/msgpack/v5 v5.3.5 // indirect
 	github.com/vmihailenco/tagparser/v2 v2.0.0 // indirect
-	go.etcd.io/bbolt v1.3.6 // indirect
 	golang.org/x/crypto v0.0.0-20220210151621-f4118a5b28e2 // indirect
 	golang.org/x/sys v0.0.0-20220209214540-3681064d5158 // indirect
 	golang.org/x/text v0.3.7 // indirect

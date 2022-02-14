@@ -1,6 +1,8 @@
 package model
 
-import "time"
+import (
+	"time"
+)
 
 type Category string
 
@@ -12,11 +14,16 @@ const (
 type TxtMsg struct {
 	ID     string // DateID
 	UserID string // 暂时不使用，以后升级为多用户系统时使用
-	Alias  string // 别名，用于方便检索
+	Alias  string // 别名，要注意与 Alias bucket 联动。
 	Msg    string
 	Cat    Category // 类型（比如暂存、永久）
 	CTime  int64
 	MTime  int64
+}
+
+// Alias 指向一条 TxtMsg, 要注意与 TxtMsg 联动（同时添加/修改/删除）。
+type Alias struct {
+	MsgID string
 }
 
 type Config struct {
@@ -32,7 +39,23 @@ type Config struct {
 
 // DateID 返回一个便于通过前缀筛选时间范围的字符串 id,
 // 由于精确到秒，为了避免重复，每次生成新 id 前会先暂停一秒。
-func DateID() string {
+// offset 的格式是 "+8" 表示东八区(北京时间), "-5" 表示西五区(纽约时间), 依此类推。
+func DateID(offset string) (string, error) {
 	time.Sleep(time.Second)
-	return time.Now().Format("20060102150405")
+
+	timezone, err := time.ParseDuration(offset + "h")
+	if err != nil {
+		return "", err
+	}
+
+	// utcFormat 大概长这个样子 => "20220214214208+00:00"
+	// 由于 utcFormat 包含了时区 +00:00, 因此 dt 的时区就是 UTC
+	utcFormat := time.Now().UTC().Format("20060102150405-07:00")
+	dt, err := time.Parse("20060102150405-07:00", utcFormat)
+	if err != nil {
+		return "", err
+	}
+	// 由于 dt 的时区是 UTC, 格式化是就是按照 UTC 来输出字符串的，
+	// 因此可以通过加减时间来假装时区变更。
+	return dt.Add(timezone).Format("20060102150405"), nil
 }

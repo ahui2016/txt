@@ -13,7 +13,7 @@ import (
 
 const (
 	AppConfigFolder = "github-ahui2016/txt"
-	dbFileName      = "db-txt.sqlite"
+	dbFileName      = "db-txt.bolt"
 )
 
 var (
