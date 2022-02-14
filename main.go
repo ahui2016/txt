@@ -3,6 +3,7 @@ package main
 import (
 	"embed"
 	"log"
+	"net/http"
 
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
@@ -54,4 +55,22 @@ func main() {
 	r.GET("/favicon.ico", func(c *gin.Context) {
 		c.FileFromFS("/favicon.ico", EmbedFolder(staticFiles, "static"))
 	})
+
+	r.GET("/", func(c *gin.Context) {
+		c.Redirect(http.StatusFound, "/public/index.html")
+	})
+
+	auth := r.Group("/auth", Sleep())
+	{
+		auth.GET("/is-signed-in", func(c *gin.Context) {
+			c.JSON(OK, isSignedIn(c))
+		})
+		auth.POST("/sign-in", signInHandler)
+		auth.GET("/sign-out", signOutHandler)
+
+	}
+
+	if err := r.Run(*addr); err != nil {
+		log.Fatal(err)
+	}
 }

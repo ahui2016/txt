@@ -277,5 +277,5 @@ export function CreateGotoSignIn() {
 export function CreateFooter() {
     return m("div")
         .addClass("Footer")
-        .append(span("version: 2022-02-12"), m("br"), LinkElem("https://github.com/ahui2016/mima", { blank: true }).addClass("FooterLink"));
+        .append(span("version: 2022-02-12"), m("br"), LinkElem("https://github.com/ahui2016/txt", { blank: true }).addClass("FooterLink"));
 }

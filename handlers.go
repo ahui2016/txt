@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/ahui2016/txt/util"
+	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/static"
 	"github.com/gin-gonic/gin"
 )
@@ -83,4 +84,25 @@ type idForm struct {
 
 type SignInForm struct {
 	Password string `form:"password" binding:"required"`
+}
+
+func signInHandler(c *gin.Context) {
+	if isSignedIn(c) {
+		c.Status(OK)
+		return
+	}
+	var form SignInForm
+	if BindCheck(c, &form) {
+		return
+	}
+	if checkKeyAndIP(c, form.Password) {
+		return
+	}
+	session := sessions.Default(c)
+	checkErr(c, sessionSet(session, true, newNormalOptions()))
+}
+
+func signOutHandler(c *gin.Context) {
+	session := sessions.Default(c)
+	checkErr(c, sessionSet(session, false, newExpireOptions()))
 }

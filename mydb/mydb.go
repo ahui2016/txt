@@ -8,8 +8,6 @@ import (
 	bolt "go.etcd.io/bbolt"
 )
 
-//TODO https://github.com/etcd-io/bbolt
-
 type DB struct {
 	Path   string
 	DB     *bolt.DB

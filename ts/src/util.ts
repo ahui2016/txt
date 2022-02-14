@@ -395,7 +395,7 @@ export function CreateFooter(): mjElement {
     .append(
       span("version: 2022-02-12"),
       m("br"),
-      LinkElem("https://github.com/ahui2016/mima", { blank: true }).addClass(
+      LinkElem("https://github.com/ahui2016/txt", { blank: true }).addClass(
         "FooterLink"
       )
     );

@@ -58,23 +58,27 @@ func (db *DB) createBuckets() error {
 	return tx.Commit()
 }
 
-func putBytes(bucket *bolt.Bucket, key string, v []byte) error {
-	return bucket.Put([]byte(key), v)
-}
+// func putBytes(bucket *bolt.Bucket, key string, v []byte) error {
+// 	return bucket.Put([]byte(key), v)
+// }
+// func putString(bucket *bolt.Bucket, key string, v string) error {
+// 	return bucket.Put([]byte(key), []byte(v))
+// }
 
-func putString(bucket *bolt.Bucket, key string, v string) error {
-	return bucket.Put([]byte(key), []byte(v))
-}
+// func txPutBytes(tx *bolt.Tx, bucket, key string, v []byte) error {
+// 	b := tx.Bucket([]byte(bucket))
+// 	return b.Put([]byte(key), v)
+// }
 
-func txPutBytes(tx *bolt.Tx, bucket, key string, v []byte) error {
-	b := tx.Bucket([]byte(bucket))
-	return b.Put([]byte(key), v)
-}
+// func txPutString(tx *bolt.Tx, bucket, key string, v string) error {
+// 	b := tx.Bucket([]byte(bucket))
+// 	return b.Put([]byte(key), []byte(v))
+// }
 
-func txPutString(tx *bolt.Tx, bucket, key string, v string) error {
-	b := tx.Bucket([]byte(bucket))
-	return b.Put([]byte(key), []byte(v))
-}
+// func (db *DB) getString(bucket, key string) (string, error) {
+// 	v, err := db.getBytes(bucket, key)
+// 	return string(v), err
+// }
 
 func txPutObject(tx *bolt.Tx, bucket, key string, v interface{}) error {
 	b := tx.Bucket([]byte(bucket))
@@ -97,11 +101,6 @@ func (db *DB) getBytes(bucket, key string) (v []byte, err error) {
 	return
 }
 
-func (db *DB) getString(bucket, key string) (string, error) {
-	v, err := db.getBytes(bucket, key)
-	return string(v), err
-}
-
 func (db *DB) getConfig() (config Config, err error) {
 	data, err := db.getBytes(config_bucket, config_key)
 	if err != nil {
@@ -121,23 +120,17 @@ func (db *DB) initConfig() error {
 		return err
 	}
 	// 剩下的唯一可能性就是 err == ErrNoResult
-	err = db.DB.Update(func(tx *bolt.Tx) error {
-		return txPutObject(tx, config_bucket, config_key, defaultConfig)
-	})
-	if err != nil {
-		return err
-	}
-	db.Config = defaultConfig
-	return nil
+	return db.updateConfig(defaultConfig)
 }
 
-func (db *DB) UpdateConfig(config Config) error {
+func (db *DB) updateConfig(config Config) error {
 	err := db.DB.Update(func(tx *bolt.Tx) error {
 		return txPutObject(tx, config_bucket, config_key, config)
 	})
 	if err != nil {
 		return err
 	}
+	// 要记得更新 db.Config
 	db.Config = config
 	return nil
 }
