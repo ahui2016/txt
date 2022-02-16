@@ -69,7 +69,11 @@ func main() {
 		auth.GET("/sign-out", signOutHandler)
 		auth.POST("/get-current-key", getCurrentKey)
 		auth.POST("/gen-new-key", generateKeyHandler)
+	}
 
+	api := r.Group("/api", Sleep(), CheckSignIn())
+	{
+		api.POST("/add", addTxtMsg)
 	}
 
 	if err := r.Run(*addr); err != nil {

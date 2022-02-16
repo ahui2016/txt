@@ -2,7 +2,11 @@ package model
 
 import (
 	"time"
+
+	"github.com/ahui2016/txt/util"
 )
+
+const TimezoneOffset = "+8" // 北京时间
 
 type Category string
 
@@ -21,8 +25,25 @@ type TxtMsg struct {
 	MTime  int64
 }
 
+func NewTxtMsg(msg string) (tm TxtMsg, err error) {
+	id, err := DateID(TimezoneOffset)
+	if err != nil {
+		return
+	}
+	now := util.TimeNow()
+	tm = TxtMsg{
+		ID:    id,
+		Msg:   msg,
+		Cat:   CatTemp,
+		CTime: now,
+		MTime: now,
+	}
+	return
+}
+
 // Alias 指向一条 TxtMsg, 要注意与 TxtMsg 联动（同时添加/修改/删除）。
 type Alias struct {
+	ID    string // TxtMsg.Alias
 	MsgID string
 }
 
@@ -34,7 +55,6 @@ type Config struct {
 	MsgSizeLimit   int64  // 每条消息的长度上限
 	TempLimit      int64  // 暂存消息条数上限（永久消息不设上限）
 	EveryPageLimit int64  // 每页最多列出多少条消息
-
 }
 
 // DateID 返回一个便于通过前缀筛选时间范围的字符串 id,

@@ -18,14 +18,16 @@ const aboutPage = m("div").append(m("p").text("输入主密码，点击 Get Key 
 const CurrentKeyArea = cc("div");
 CurrentKeyArea.init = function (key) {
     const self = CurrentKeyArea.elem();
-    self.append(m("div").append(span("Current Key"), m("input").addClass("ml-2").val(key.Key)));
+    self.append(m("div").append(span("Current Key"), m("input").addClass("ml-2").val(key.Key).prop({ readonly: true })));
     self.append(m("div").text(`生效日期: ${dayjs.unix(key.Starts).format("YYYY-MM-DD")}`));
     self.append(m("div").text(`有效期: ${key.MaxAge} (天)`));
     if (key.IsGood) {
         self.append(m("div").append(span("状态: "), span("有效").addClass("alert-success")));
         self.append(m("div")
             .addClass("form-text")
-            .text(`(该密钥将于 ${dayjs.unix(key.Expires).format("YYYY-MM-DD")} 自动作废)`));
+            .text(`(该密钥将于 ${dayjs
+            .unix(key.Expires)
+            .format("YYYY-MM-DD")} 自动作废)`));
     }
     else {
         self.append(m("div").append(span("状态: "), span("已失效").addClass("alert-danger")));
@@ -42,7 +44,7 @@ const Form = cc("form", {
         m("label").text("Master Password").attr({ for: PwdInput.raw_id }),
         m("div").append(m(UsernameInput).hide(), m(PwdInput)
             .addClass("form-textinput form-textinput-fat")
-            .attr({ type: "password" }), m("div").append(m(GetKeyBtn).on("click", (event) => {
+            .attr({ type: "password" }), m("div").addClass('text-right').append(m(GetKeyBtn).on("click", (event) => {
             event.preventDefault();
             const pwd = util.val(PwdInput);
             if (!pwd) {

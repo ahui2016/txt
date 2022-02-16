@@ -15,7 +15,23 @@ const FormAlerts = util.CreateAlerts();
 const Form = cc("form", {
     children: [
         m(MsgInput).addClass("form-textinput form-textinput-fat"),
-        m("div").addClass("text-right").append(m(SendBtn)),
+        m("div")
+            .addClass("text-right")
+            .append(m(SendBtn).on("click", (e) => {
+            e.preventDefault();
+            util.ajax({
+                method: "POST",
+                url: "/api/add",
+                alerts: FormAlerts,
+                buttonID: SendBtn.id,
+                body: { msg: util.val(MsgInput, "trim") },
+            }, (resp) => {
+                const id = resp.message;
+                FormAlerts.insert("success", id);
+                MsgInput.elem().val("");
+                util.focus(MsgInput);
+            });
+        })),
         m(FormAlerts),
     ],
 });

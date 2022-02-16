@@ -14,26 +14,30 @@ import (
 // https://github.com/vmihailenco/msgpack
 
 const (
-	txtmsg_bucket       = "txtmsg-bucket"
+	config_key          = "config-key"
+	temp_bucket         = "temporary-bucket"
+	perm_bucket         = "permanent-bucket"
+	alias_bucket        = "alias-bucket"
 	config_bucket       = "config-bucket"
 	txt_id_key          = "txt-id-key"
 	txt_id_prefix       = "T"
-	config_key          = "config-key"
 	hour                = 60 * 60
 	day                 = 24 * hour
 	defaultKeyMaxAge    = 30 * day
 	defaultMsgSizeLimit = 1024
 	defaultTempLimit    = 100
+	defaultPageLimit    = 30
 	secretKeySize       = 12 // 不需要太高的安全性
 )
 
 var defaultConfig = Config{
-	Password:     "abc",
-	Key:          util.RandomString(secretKeySize),
-	KeyStarts:    util.TimeNow(),
-	KeyMaxAge:    defaultKeyMaxAge,
-	MsgSizeLimit: defaultMsgSizeLimit,
-	TempLimit:    defaultTempLimit,
+	Password:       "abc",
+	Key:            util.RandomString(secretKeySize),
+	KeyStarts:      util.TimeNow(),
+	KeyMaxAge:      defaultKeyMaxAge,
+	MsgSizeLimit:   defaultMsgSizeLimit,
+	TempLimit:      defaultTempLimit,
+	EveryPageLimit: defaultPageLimit,
 }
 
 var ErrNoResult = errors.New("error-database-no-result")
@@ -52,8 +56,10 @@ func (db *DB) createBuckets() error {
 	defer tx.Rollback()
 
 	e1 := txCreateBucket(tx, config_bucket)
-	e2 := txCreateBucket(tx, txtmsg_bucket)
-	if err := util.WrapErrors(e1, e2); err != nil {
+	e2 := txCreateBucket(tx, temp_bucket)
+	e3 := txCreateBucket(tx, perm_bucket)
+	e4 := txCreateBucket(tx, alias_bucket)
+	if err := util.WrapErrors(e1, e2, e3, e4); err != nil {
 		return err
 	}
 	return tx.Commit()
@@ -71,15 +77,24 @@ func (db *DB) createBuckets() error {
 // 	return b.Put([]byte(key), v)
 // }
 
-// func txPutString(tx *bolt.Tx, bucket, key string, v string) error {
-// 	b := tx.Bucket([]byte(bucket))
-// 	return b.Put([]byte(key), []byte(v))
-// }
-
 // func (db *DB) getString(bucket, key string) (string, error) {
 // 	v, err := db.getBytes(bucket, key)
 // 	return string(v), err
 // }
+
+// func (db *DB) getInt64(bucket, key string) (n int64, err error) {
+// 	data, err := db.getBytes(bucket, key)
+// 	if err != nil {
+// 		return
+// 	}
+// 	err = msgpack.Unmarshal(data, &n)
+// 	return
+// }
+
+func txPutString(tx *bolt.Tx, bucket, key string, v string) error {
+	b := tx.Bucket([]byte(bucket))
+	return b.Put([]byte(key), []byte(v))
+}
 
 func txPutObject(tx *bolt.Tx, bucket, key string, v interface{}) error {
 	b := tx.Bucket([]byte(bucket))
@@ -144,4 +159,13 @@ func (db *DB) GenNewKey() error {
 	config.Key = util.RandomString(secretKeySize)
 	config.KeyStarts = util.TimeNow()
 	return db.updateConfig(config)
+}
+
+func (db *DB) Count(bucket string) (n int) {
+	_ = db.DB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(bucket))
+		n = b.Stats().KeyN
+		return nil
+	})
+	return
 }

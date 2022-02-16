@@ -4,8 +4,13 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/ahui2016/txt/model"
 	"github.com/ahui2016/txt/util"
 	bolt "go.etcd.io/bbolt"
+)
+
+type (
+	TxtMsg = model.TxtMsg
 )
 
 type DB struct {
@@ -51,5 +56,16 @@ func (db *DB) CheckKey(key string) error {
 	if util.TimeNow() > db.Config.KeyStarts+db.Config.KeyMaxAge {
 		return fmt.Errorf("the key is expired")
 	}
+	return nil
+}
+
+func (db *DB) InsertTxtMsg(tm TxtMsg) error {
+	return db.DB.Update(func(tx *bolt.Tx) error {
+		return txPutObject(tx, temp_bucket, tm.ID, tm)
+	})
+}
+
+func (db *DB) UpdateTxtMsg(tm TxtMsg) error {
+	// 要注意 Alias 的新增/修改/删除 都要分别处理。
 	return nil
 }

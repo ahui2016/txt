@@ -151,3 +151,21 @@ func generateKeyHandler(c *gin.Context) {
 	}
 	writeKeyResult(c, db.Config)
 }
+
+func addTxtMsg(c *gin.Context) {
+	type form struct {
+		Msg string `form:"msg" binding:"required"`
+	}
+	var f form
+	if BindCheck(c, &f) {
+		return
+	}
+	msg, err := model.NewTxtMsg(f.Msg)
+	if checkErr(c, err) {
+		return
+	}
+	if checkErr(c, db.InsertTxtMsg(msg)) {
+		return
+	}
+	c.JSON(OK, Text{msg.ID})
+}

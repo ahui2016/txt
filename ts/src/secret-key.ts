@@ -29,7 +29,7 @@ CurrentKeyArea.init = function (key: util.CurrentKey) {
   self.append(
     m("div").append(
       span("Current Key"),
-      m("input").addClass("ml-2").val(key.Key)
+      m("input").addClass("ml-2").val(key.Key).prop({ readonly: true })
     )
   );
   self.append(
@@ -44,7 +44,9 @@ CurrentKeyArea.init = function (key: util.CurrentKey) {
       m("div")
         .addClass("form-text")
         .text(
-          `(该密钥将于 ${dayjs.unix(key.Expires).format("YYYY-MM-DD")} 自动作废)`
+          `(该密钥将于 ${dayjs
+            .unix(key.Expires)
+            .format("YYYY-MM-DD")} 自动作废)`
         )
     );
   } else {
@@ -73,7 +75,7 @@ const Form = cc("form", {
       m(PwdInput)
         .addClass("form-textinput form-textinput-fat")
         .attr({ type: "password" }),
-      m("div").append(
+      m("div").addClass('text-right').append(
         m(GetKeyBtn).on("click", (event) => {
           event.preventDefault();
           const pwd = util.val(PwdInput);
