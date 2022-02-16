@@ -36,8 +36,7 @@ hr {
   font-weight: bold;
 }
 
-.HistoryItem,
-.MimaItem {
+.TxtMsgItem {
   margin-bottom: 1.5rem;
 }
 

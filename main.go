@@ -74,6 +74,7 @@ func main() {
 	api := r.Group("/api", Sleep(), CheckSignIn())
 	{
 		api.POST("/add", addTxtMsg)
+		api.GET("/recent-items", getRecentItems)
 	}
 
 	if err := r.Run(*addr); err != nil {

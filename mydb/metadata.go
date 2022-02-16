@@ -98,13 +98,17 @@ func (db *DB) createBuckets() error {
 // 	return b.Put([]byte(key), []byte(v))
 // }
 
-func txPutObject(tx *bolt.Tx, bucket, key string, v interface{}) error {
-	b := tx.Bucket([]byte(bucket))
+func bucketPutObject(bucket *bolt.Bucket, key []byte, v interface{}) error {
 	data, err := msgpack.Marshal(v)
 	if err != nil {
 		return err
 	}
-	return b.Put([]byte(key), data)
+	return bucket.Put(key, data)
+}
+
+func txPutObject(tx *bolt.Tx, bucket, key string, v interface{}) error {
+	b := tx.Bucket([]byte(bucket))
+	return bucketPutObject(b, []byte(key), v)
 }
 
 func (db *DB) getBytes(bucket, key string) (v []byte, err error) {
@@ -174,4 +178,22 @@ func (db *DB) Count(bucket string) (n int) {
 
 func (db *DB) NewTxtMsg(msg string) (TxtMsg, error) {
 	return model.NewTxtMsg(msg, db.Config.TimeOffset)
+}
+
+func (db *DB) updateIndex(bucket string) error {
+	i := 0
+	err := db.DB.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(bucket))
+		err := b.ForEach(func(k, v []byte) error {
+			i++
+			tm, err := model.UnmarshalTxtMsg(v)
+			if err != nil {
+				return err
+			}
+			tm.Index = i
+			return bucketPutObject(b, k, tm)
+		})
+		return err
+	})
+	return err
 }

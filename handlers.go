@@ -164,8 +164,13 @@ func addTxtMsg(c *gin.Context) {
 	if checkErr(c, err) {
 		return
 	}
-	if checkErr(c, db.InsertTxtMsg(msg)) {
+	checkErr(c, db.InsertTxtMsg(msg))
+}
+
+func getRecentItems(c *gin.Context) {
+	items, err := db.GetRecentItems()
+	if checkErr(c, err) {
 		return
 	}
-	c.JSON(OK, Text{msg.ID})
+	c.JSON(OK, items)
 }

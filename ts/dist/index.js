@@ -1,13 +1,13 @@
 // 采用受 Mithril 启发的基于 jQuery 实现的极简框架 https://github.com/ahui2016/mj.js
-import { m, cc } from "./mj.js";
+import { m, cc, appendToList } from "./mj.js";
 import * as util from "./util.js";
-// import { MimaItem } from "./mima-item.js";
+import { MsgItem } from "./txtmsg-item.js";
 const Alerts = util.CreateAlerts();
 const Loading = util.CreateLoading("center");
 const footerElem = util.CreateFooter();
 const titleArea = m("div").addClass("text-center").append(m("h1").text("txt"));
 const GotoSignIn = util.CreateGotoSignIn();
-const MimaList = cc("div");
+const MsgList = cc("div");
 const TextForCopy = cc("input", { id: "TextForCopy" });
 const MsgInput = util.create_textarea();
 const SendBtn = cc("button", { text: "Send" });
@@ -25,17 +25,17 @@ const Form = cc("form", {
                 alerts: FormAlerts,
                 buttonID: SendBtn.id,
                 body: { msg: util.val(MsgInput, "trim") },
-            }, (resp) => {
-                const id = resp.message;
-                FormAlerts.insert("success", id);
-                MsgInput.elem().val("");
-                util.focus(MsgInput);
+            }, () => {
+                FormAlerts.insert("success", "发送成功, 3 秒后会自动刷新页面。");
+                setTimeout(() => {
+                    location.reload();
+                }, 3000);
             });
         })),
         m(FormAlerts),
     ],
 });
-$("#root").append(titleArea, m(Loading).addClass("my-3"), m(Alerts), m(GotoSignIn).addClass("my-3").hide(), m(Form).hide(), m(MimaList).addClass("mt-3"), footerElem.hide(), m(TextForCopy).hide());
+$("#root").append(titleArea, m(Loading).addClass("my-3"), m(Alerts), m(GotoSignIn).addClass("my-3").hide(), m(Form).hide(), m(MsgList).addClass("mt-3"), footerElem.hide(), m(TextForCopy).hide());
 init();
 function init() {
     checkSignIn();
@@ -46,11 +46,23 @@ function checkSignIn() {
         if (yes) {
             Form.elem().show();
             util.focus(MsgInput);
+            getRecent();
         }
         else {
             GotoSignIn.elem().show();
         }
     }, undefined, () => {
         Loading.hide();
+    });
+}
+function getRecent() {
+    util.ajax({ method: "GET", url: '/api/recent-items', alerts: Alerts }, resp => {
+        const items = resp;
+        if (items && items.length > 0) {
+            appendToList(MsgList, items.map(MsgItem));
+            if (items.length >= 5) {
+                footerElem.show();
+            }
+        }
     });
 }

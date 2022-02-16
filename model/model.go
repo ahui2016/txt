@@ -3,7 +3,7 @@ package model
 import (
 	"time"
 
-	"github.com/ahui2016/txt/util"
+	"github.com/vmihailenco/msgpack/v5"
 )
 
 type Category string
@@ -14,13 +14,12 @@ const (
 )
 
 type TxtMsg struct {
-	ID     string // DateID
-	UserID string // 暂时不使用，以后升级为多用户系统时使用
-	Alias  string // 别名，要注意与 Alias bucket 联动。
-	Msg    string
+	ID     string   // DateID, 既是 id 也是创建日期
+	UserID string   // 暂时不使用，以后升级为多用户系统时使用
+	Alias  string   // 别名，要注意与 Alias bucket 联动。
+	Msg    string   // 消息内容
 	Cat    Category // 类型（比如暂存、永久）
-	CTime  int64
-	MTime  int64
+	Index  int      // 流水号，每当插入或删除条目时，需要更新全部条目的流水号
 }
 
 func NewTxtMsg(msg, offset string) (tm TxtMsg, err error) {
@@ -28,14 +27,16 @@ func NewTxtMsg(msg, offset string) (tm TxtMsg, err error) {
 	if err != nil {
 		return
 	}
-	now := util.TimeNow()
 	tm = TxtMsg{
-		ID:    id,
-		Msg:   msg,
-		Cat:   CatTemp,
-		CTime: now,
-		MTime: now,
+		ID:  id,
+		Msg: msg,
+		Cat: CatTemp,
 	}
+	return
+}
+
+func UnmarshalTxtMsg(data []byte) (tm TxtMsg, err error) {
+	err = msgpack.Unmarshal(data, &tm)
 	return
 }
 
@@ -67,14 +68,14 @@ func DateID(offset string) (string, error) {
 		return "", err
 	}
 
-	// utcFormat 大概长这个样子 => "20220214214208+00:00"
+	// utcFormat 大概长这个样子 => "2022-02-14 21:42:08+00:00"
 	// 由于 utcFormat 包含了时区 +00:00, 因此 dt 的时区就是 UTC
-	utcFormat := time.Now().UTC().Format("20060102150405-07:00")
-	dt, err := time.Parse("20060102150405-07:00", utcFormat)
+	utcFormat := time.Now().UTC().Format("2006-01-02 15:04:05-07:00")
+	dt, err := time.Parse("2006-01-02 15:04:05-07:00", utcFormat)
 	if err != nil {
 		return "", err
 	}
 	// 由于 dt 的时区是 UTC, 格式化是就是按照 UTC 来输出字符串的，
 	// 因此可以通过加减时间来假装时区变更。
-	return dt.Add(timezone).Format("20060102150405"), nil
+	return dt.Add(timezone).Format("2006-01-02 15:04:05"), nil
 }

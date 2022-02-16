@@ -1,7 +1,7 @@
 // 采用受 Mithril 启发的基于 jQuery 实现的极简框架 https://github.com/ahui2016/mj.js
 import { mjElement, mjComponent, m, cc, span, appendToList } from "./mj.js";
 import * as util from "./util.js";
-// import { MimaItem } from "./mima-item.js";
+import { MsgItem, TxtMsg } from "./txtmsg-item.js";
 
 const Alerts = util.CreateAlerts();
 const Loading = util.CreateLoading("center");
@@ -11,7 +11,7 @@ const titleArea = m("div").addClass("text-center").append(m("h1").text("txt"));
 
 const GotoSignIn = util.CreateGotoSignIn();
 
-const MimaList = cc("div");
+const MsgList = cc("div");
 
 const TextForCopy = cc("input", { id: "TextForCopy" });
 
@@ -35,11 +35,11 @@ const Form = cc("form", {
               buttonID: SendBtn.id,
               body: { msg: util.val(MsgInput, "trim") },
             },
-            (resp) => {
-              const id = (resp as util.Text).message;
-              FormAlerts.insert("success", id);
-              MsgInput.elem().val("");
-              util.focus(MsgInput);
+            () => {
+              FormAlerts.insert("success", "发送成功, 3 秒后会自动刷新页面。");
+              setTimeout(() => {
+                location.reload();
+              }, 3000);
             }
           );
         })
@@ -54,7 +54,7 @@ $("#root").append(
   m(Alerts),
   m(GotoSignIn).addClass("my-3").hide(),
   m(Form).hide(),
-  m(MimaList).addClass("mt-3"),
+  m(MsgList).addClass("mt-3"),
   footerElem.hide(),
   m(TextForCopy).hide()
 );
@@ -65,7 +65,7 @@ function init() {
   checkSignIn();
 }
 
-function checkSignIn() {
+function checkSignIn(): void {
   util.ajax(
     { method: "GET", url: "/auth/is-signed-in", alerts: Alerts },
     (resp) => {
@@ -73,6 +73,7 @@ function checkSignIn() {
       if (yes) {
         Form.elem().show();
         util.focus(MsgInput);
+        getRecent();
       } else {
         GotoSignIn.elem().show();
       }
@@ -82,4 +83,16 @@ function checkSignIn() {
       Loading.hide();
     }
   );
+}
+
+function getRecent(): void {
+  util.ajax({method:"GET",url:'/api/recent-items',alerts:Alerts}, resp => {
+    const items = resp as TxtMsg[];
+    if (items && items.length > 0) {
+      appendToList(MsgList, items.map(MsgItem));
+      if (items.length >= 5) {
+        footerElem.show();
+      }
+    }
+  });
 }
