@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/ahui2016/txt/model"
 	"github.com/ahui2016/txt/util"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/static"
@@ -105,4 +106,48 @@ func signInHandler(c *gin.Context) {
 func signOutHandler(c *gin.Context) {
 	session := sessions.Default(c)
 	checkErr(c, sessionSet(session, false, newExpireOptions()))
+}
+
+type secretKey struct {
+	Key     string
+	Starts  int64
+	MaxAge  int64
+	Expires int64
+	IsGood  bool // 是否有效
+}
+
+func writeKeyResult(c *gin.Context, config model.Config) {
+	expires := config.KeyStarts + config.KeyMaxAge
+	c.JSON(OK, secretKey{
+		Key:     config.Key,
+		Starts:  config.KeyStarts,
+		MaxAge:  config.KeyMaxAge / day, // 转换单位“天”
+		Expires: expires,
+		IsGood:  (util.TimeNow() <= expires),
+	})
+}
+
+func getCurrentKey(c *gin.Context) {
+	var form SignInForm
+	if BindCheck(c, &form) {
+		return
+	}
+	if checkPwdAndIP(c, form.Password) {
+		return
+	}
+	writeKeyResult(c, db.Config)
+}
+
+func generateKeyHandler(c *gin.Context) {
+	var form SignInForm
+	if BindCheck(c, &form) {
+		return
+	}
+	if checkPwdAndIP(c, form.Password) {
+		return
+	}
+	if checkErr(c, db.GenNewKey()) {
+		return
+	}
+	writeKeyResult(c, db.Config)
 }

@@ -24,11 +24,12 @@ const (
 	defaultKeyMaxAge    = 30 * day
 	defaultMsgSizeLimit = 1024
 	defaultTempLimit    = 100
+	secretKeySize       = 12 // 不需要太高的安全性
 )
 
 var defaultConfig = Config{
 	Password:     "abc",
-	Key:          util.RandomString(12), // 不需要太高的安全性
+	Key:          util.RandomString(secretKeySize),
 	KeyStarts:    util.TimeNow(),
 	KeyMaxAge:    defaultKeyMaxAge,
 	MsgSizeLimit: defaultMsgSizeLimit,
@@ -133,4 +134,14 @@ func (db *DB) updateConfig(config Config) error {
 	// 要记得更新 db.Config
 	db.Config = config
 	return nil
+}
+
+func (db *DB) GenNewKey() error {
+	config, err := db.getConfig()
+	if err != nil {
+		return err
+	}
+	config.Key = util.RandomString(secretKeySize)
+	config.KeyStarts = util.TimeNow()
+	return db.updateConfig(config)
 }

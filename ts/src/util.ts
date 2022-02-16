@@ -8,37 +8,12 @@ export interface Num {
   n: number;
 }
 
-export interface Mima {
-  ID: string; // ShortID
-  Title: string;
-  Label: string;
-  Username: string;
-  Password: string;
-  Notes: string;
-  CTime: number; // 创建日期
-  MTime: number; // 修改日期
-}
-
-export interface History {
-  ID: string; // random id
-  MimaID: string; // Mima.ID
-  Title: string;
-  Username: string;
-  Password: string;
-  Notes: string;
-  CTime: number; // 创建日期
-}
-
-export interface MimaWithHistory {
-  ID: string; // ShortID
-  Title: string;
-  Label: string;
-  Username: string;
-  Password: string;
-  Notes: string;
-  CTime: number; // 创建日期
-  MTime: number; // 修改日期
-  History: History[];
+export interface CurrentKey {
+  Key: string;
+  Starts: number;
+  MaxAge: number;
+  Expires: number;
+  IsGood: boolean;
 }
 
 // 获取地址栏的参数。

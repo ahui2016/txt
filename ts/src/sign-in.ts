@@ -80,6 +80,7 @@ const SignInForm = cc("form", {
               SignInForm.elem().hide();
               Alerts.clear().insert("success", "成功登入");
               SignOutArea.elem().show();
+              GotoGetKey.elem().hide();
             },
             (that, errMsg) => {
               if (that.status == 401) {
@@ -101,8 +102,8 @@ const SignInForm = cc("form", {
 $("#root").append(
   m(NaviBar),
   m(Loading).addClass("my-3"),
-  m(Alerts),
   m(SignInForm).hide(),
+  m(Alerts),
   m(GotoGetKey).hide(),
   m(SignOutArea).addClass("my-5").hide(),
   footerElem.hide()

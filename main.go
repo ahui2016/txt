@@ -67,6 +67,8 @@ func main() {
 		})
 		auth.POST("/sign-in", signInHandler)
 		auth.GET("/sign-out", signOutHandler)
+		auth.POST("/get-current-key", getCurrentKey)
+		auth.POST("/gen-new-key", generateKeyHandler)
 
 	}
 

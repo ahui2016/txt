@@ -30,6 +30,22 @@ func checkIPTryCount(ip string) error {
 	return nil
 }
 
+// checkPwdAndIP 检查 IP 与主密码，返回 true 表示有错误。
+func checkPwdAndIP(c *gin.Context, pwd string) (exit bool) {
+	ip := c.ClientIP()
+	if err := checkIPTryCount(ip); err != nil {
+		c.JSON(http.StatusForbidden, Text{err.Error()})
+		return true
+	}
+	if pwd != db.Config.Password {
+		ipTryCount[ip]++
+		c.JSON(http.StatusUnauthorized, Text{"wrong password"})
+		return true
+	}
+	ipTryCount[ip] = 0
+	return false
+}
+
 // checkKeyAndIP 检查 IP 与日常操作密钥，返回 true 表示有错误。
 func checkKeyAndIP(c *gin.Context, secretKey string) (exit bool) {
 	ip := c.ClientIP()

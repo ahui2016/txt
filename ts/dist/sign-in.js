@@ -9,7 +9,7 @@ const NaviBar = cc("div", {
     children: [
         util.LinkElem("/", { text: "home" }),
         span(" .. "),
-        util.LinkElem("/public/change-pwd.html", { text: "change password" }),
+        util.LinkElem("/public/secret-key.html", { text: "get secret key" }),
         span(" .. Sign-in"),
     ],
 });
@@ -34,6 +34,10 @@ const SignOutArea = cc("div", {
         }),
     ],
 });
+const GotoGetKey = cc("div", { children: [
+        span("获取密钥或重新生成密钥 ➡ "),
+        util.LinkElem("/public/secret-key.html")
+    ] });
 // https://www.chromium.org/developers/design-documents/form-styles-that-chromium-understands/
 const UsernameInput = cc("input", { attr: { autocomplete: "username" } });
 const PwdInput = cc("input", { attr: { autocomplete: "current-password" } });
@@ -61,9 +65,11 @@ const SignInForm = cc("form", {
                 SignInForm.elem().hide();
                 Alerts.clear().insert("success", "成功登入");
                 SignOutArea.elem().show();
+                GotoGetKey.elem().hide();
             }, (that, errMsg) => {
                 if (that.status == 401) {
                     Alerts.insert("danger", "密码错误");
+                    GotoGetKey.elem().show();
                 }
                 else {
                     Alerts.insert("danger", errMsg);
@@ -74,7 +80,7 @@ const SignInForm = cc("form", {
         })),
     ],
 });
-$("#root").append(m(NaviBar), m(Loading).addClass("my-3"), m(SignInForm).hide(), m(Alerts), m(SignOutArea).addClass("my-5").hide(), footerElem.hide());
+$("#root").append(m(NaviBar), m(Loading).addClass("my-3"), m(SignInForm).hide(), m(Alerts), m(GotoGetKey).hide(), m(SignOutArea).addClass("my-5").hide(), footerElem.hide());
 init();
 function init() {
     $('title').text("Sign-in .. txt");
