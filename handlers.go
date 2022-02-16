@@ -160,7 +160,7 @@ func addTxtMsg(c *gin.Context) {
 	if BindCheck(c, &f) {
 		return
 	}
-	msg, err := model.NewTxtMsg(f.Msg)
+	msg, err := db.NewTxtMsg(f.Msg)
 	if checkErr(c, err) {
 		return
 	}

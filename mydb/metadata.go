@@ -27,7 +27,8 @@ const (
 	defaultMsgSizeLimit = 1024
 	defaultTempLimit    = 100
 	defaultPageLimit    = 30
-	secretKeySize       = 12 // 不需要太高的安全性
+	BeijingTime         = "+8" // 北京时间
+	secretKeySize       = 12   // 不需要太高的安全性
 )
 
 var defaultConfig = Config{
@@ -38,6 +39,7 @@ var defaultConfig = Config{
 	MsgSizeLimit:   defaultMsgSizeLimit,
 	TempLimit:      defaultTempLimit,
 	EveryPageLimit: defaultPageLimit,
+	TimeOffset:     BeijingTime,
 }
 
 var ErrNoResult = errors.New("error-database-no-result")
@@ -91,10 +93,10 @@ func (db *DB) createBuckets() error {
 // 	return
 // }
 
-func txPutString(tx *bolt.Tx, bucket, key string, v string) error {
-	b := tx.Bucket([]byte(bucket))
-	return b.Put([]byte(key), []byte(v))
-}
+// func txPutString(tx *bolt.Tx, bucket, key string, v string) error {
+// 	b := tx.Bucket([]byte(bucket))
+// 	return b.Put([]byte(key), []byte(v))
+// }
 
 func txPutObject(tx *bolt.Tx, bucket, key string, v interface{}) error {
 	b := tx.Bucket([]byte(bucket))
@@ -168,4 +170,8 @@ func (db *DB) Count(bucket string) (n int) {
 		return nil
 	})
 	return
+}
+
+func (db *DB) NewTxtMsg(msg string) (TxtMsg, error) {
+	return model.NewTxtMsg(msg, db.Config.TimeOffset)
 }

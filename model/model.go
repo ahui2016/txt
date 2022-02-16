@@ -6,8 +6,6 @@ import (
 	"github.com/ahui2016/txt/util"
 )
 
-const TimezoneOffset = "+8" // 北京时间
-
 type Category string
 
 const (
@@ -25,8 +23,8 @@ type TxtMsg struct {
 	MTime  int64
 }
 
-func NewTxtMsg(msg string) (tm TxtMsg, err error) {
-	id, err := DateID(TimezoneOffset)
+func NewTxtMsg(msg, offset string) (tm TxtMsg, err error) {
+	id, err := DateID(offset)
 	if err != nil {
 		return
 	}
@@ -55,6 +53,7 @@ type Config struct {
 	MsgSizeLimit   int64  // 每条消息的长度上限
 	TempLimit      int64  // 暂存消息条数上限（永久消息不设上限）
 	EveryPageLimit int64  // 每页最多列出多少条消息
+	TimeOffset     string // "+8" 表示北京时间, "-5" 表示纽约时间, 依此类推。
 }
 
 // DateID 返回一个便于通过前缀筛选时间范围的字符串 id,
