@@ -123,6 +123,15 @@ func (db *DB) getBytes(bucket, key string) (v []byte, err error) {
 	return
 }
 
+func bucketGetTxtMsg(bucket *bolt.Bucket, key []byte) (tm TxtMsg, err error) {
+	data := bucket.Get([]byte(key))
+	if data == nil {
+		return tm, ErrNoResult
+	}
+	err = msgpack.Unmarshal(data, &tm)
+	return
+}
+
 func (db *DB) getConfig() (config Config, err error) {
 	data, err := db.getBytes(config_bucket, config_key)
 	if err != nil {
@@ -176,24 +185,48 @@ func (db *DB) Count(bucket string) (n int) {
 	return
 }
 
+func (db *DB) newDateID() (string, error) {
+	return model.DateID(db.Config.TimeOffset)
+}
+
 func (db *DB) NewTxtMsg(msg string) (TxtMsg, error) {
 	return model.NewTxtMsg(msg, db.Config.TimeOffset)
 }
 
+func bucketUpdateIndex(bucket *bolt.Bucket) error {
+	max := bucket.Stats().KeyN
+	err := bucket.ForEach(func(k, v []byte) error {
+		tm, err := model.UnmarshalTxtMsg(v)
+		if err != nil {
+			return err
+		}
+		tm.Index = max
+		max--
+		return bucketPutObject(bucket, k, tm)
+	})
+	return err
+}
+
+// 注意：由于 bucketUpdateIndex 涉及 bucket.Stats().KeyN,
+// 必须在前面的删除/插入 commit 之后, bucket.Stats() 才会更新。
 func (db *DB) updateIndex(bucket string) error {
-	i := 0
 	err := db.DB.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(bucket))
-		err := b.ForEach(func(k, v []byte) error {
-			i++
-			tm, err := model.UnmarshalTxtMsg(v)
-			if err != nil {
-				return err
-			}
-			tm.Index = i
-			return bucketPutObject(b, k, tm)
-		})
-		return err
+		return bucketUpdateIndex(b)
+	})
+	return err
+}
+
+// 注意：由于 bucketUpdateIndex 涉及 bucket.Stats().KeyN,
+// 必须在前面的删除/插入 commit 之后, bucket.Stats() 才会更新。
+func (db *DB) updateAllIndex() error {
+	err := db.DB.Update(func(tx *bolt.Tx) error {
+		b1 := tx.Bucket([]byte(temp_bucket))
+		if err := bucketUpdateIndex(b1); err != nil {
+			return err
+		}
+		b2 := tx.Bucket([]byte(perm_bucket))
+		return bucketUpdateIndex(b2)
 	})
 	return err
 }

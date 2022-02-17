@@ -21,7 +21,9 @@ const FormAlerts = util.CreateAlerts();
 
 const Form = cc("form", {
   children: [
-    m(MsgInput).addClass("form-textinput form-textinput-fat"),
+    m(MsgInput)
+      .addClass("form-textinput form-textinput-fat")
+      .attr({ placeholder: "New message" }),
     m("div")
       .addClass("text-right")
       .append(
@@ -86,13 +88,16 @@ function checkSignIn(): void {
 }
 
 function getRecent(): void {
-  util.ajax({method:"GET",url:'/api/recent-items',alerts:Alerts}, resp => {
-    const items = resp as TxtMsg[];
-    if (items && items.length > 0) {
-      appendToList(MsgList, items.map(MsgItem));
-      if (items.length >= 5) {
-        footerElem.show();
+  util.ajax(
+    { method: "GET", url: "/api/recent-items", alerts: Alerts },
+    (resp) => {
+      const items = resp as TxtMsg[];
+      if (items && items.length > 0) {
+        appendToList(MsgList, items.map(MsgItem));
+        if (items.length >= 5) {
+          footerElem.show();
+        }
       }
     }
-  });
+  );
 }

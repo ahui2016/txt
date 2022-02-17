@@ -14,7 +14,9 @@ const SendBtn = cc("button", { text: "Send" });
 const FormAlerts = util.CreateAlerts();
 const Form = cc("form", {
     children: [
-        m(MsgInput).addClass("form-textinput form-textinput-fat"),
+        m(MsgInput)
+            .addClass("form-textinput form-textinput-fat")
+            .attr({ placeholder: "New message" }),
         m("div")
             .addClass("text-right")
             .append(m(SendBtn).on("click", (e) => {
@@ -56,7 +58,7 @@ function checkSignIn() {
     });
 }
 function getRecent() {
-    util.ajax({ method: "GET", url: '/api/recent-items', alerts: Alerts }, resp => {
+    util.ajax({ method: "GET", url: "/api/recent-items", alerts: Alerts }, (resp) => {
         const items = resp;
         if (items && items.length > 0) {
             appendToList(MsgList, items.map(MsgItem));

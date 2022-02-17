@@ -174,3 +174,15 @@ func getRecentItems(c *gin.Context) {
 	}
 	c.JSON(OK, items)
 }
+
+func toggleCatHandler(c *gin.Context) {
+	var f idForm
+	if BindCheck(c, &f) {
+		return
+	}
+	tm, err := db.GetByID(f.ID)
+	if checkErr(c, err) {
+		return
+	}
+	checkErr(c, db.ToggleCat(tm))
+}
