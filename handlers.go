@@ -186,3 +186,11 @@ func toggleCatHandler(c *gin.Context) {
 	}
 	checkErr(c, db.ToggleCat(tm))
 }
+
+func deleteHandler(c *gin.Context) {
+	var f idForm
+	if BindCheck(c, &f) {
+		return
+	}
+	checkErr(c, db.DeleteTxtMsg(f.ID))
+}

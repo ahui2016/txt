@@ -79,14 +79,17 @@ func (db *DB) UpdateTxtMsg(tm TxtMsg) error {
 	return nil
 }
 
-func (db *DB) DeleteTxtMsg(bucket, id string) error {
-	return db.DB.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(bucket))
-		if err := b.Delete([]byte(id)); err != nil {
+// DeleteTxtMsg 删除 id, 如果 id 不存在也返回 nil.
+func (db *DB) DeleteTxtMsg(id string) error {
+	err := db.DB.Update(func(tx *bolt.Tx) error {
+		b1 := tx.Bucket([]byte(temp_bucket))
+		if err := b1.Delete([]byte(id)); err != nil {
 			return err
 		}
-		return bucketUpdateIndex(b)
+		b2 := tx.Bucket([]byte(perm_bucket))
+		return b2.Delete([]byte(id))
 	})
+	return err
 }
 
 func (db *DB) GetByID(id string) (tm TxtMsg, err error) {
@@ -137,26 +140,6 @@ func (db *DB) ToggleCat(tm TxtMsg) error {
 	// 上面的删除/插入必须 commit 之后, bucket.Stats() 才会更新。
 	return db.updateAllIndex()
 }
-
-// func (db *DB) getTxtMsgLimit(bucket string, limit int) (items []TxtMsg, err error) {
-// 	i := 0
-// 	err = db.DB.View(func(tx *bolt.Tx) error {
-// 		b := tx.Bucket([]byte(bucket))
-// 		return b.ForEach(func(k, v []byte) error {
-// 			if i >= limit {
-// 				return nil
-// 			}
-// 			tm, err := model.UnmarshalTxtMsg(v)
-// 			if err != nil {
-// 				return err
-// 			}
-// 			items = append(items, tm)
-// 			i++
-// 			return nil
-// 		})
-// 	})
-// 	return
-// }
 
 func (db *DB) getTxtMsgLimit(bucket, start string, limit int) (items []TxtMsg, err error) {
 	i := 0

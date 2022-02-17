@@ -76,6 +76,7 @@ func main() {
 		api.POST("/add", addTxtMsg)
 		api.GET("/recent-items", getRecentItems)
 		api.POST("/toggle-category", toggleCatHandler)
+		api.POST("/delete", deleteHandler)
 	}
 
 	if err := r.Run(*addr); err != nil {

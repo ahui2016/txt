@@ -1,14 +1,14 @@
 // 采用受 Mithril 启发的基于 jQuery 实现的极简框架 https://github.com/ahui2016/mj.js
 import { m, cc, appendToList } from "./mj.js";
 import * as util from "./util.js";
-import { MsgItem } from "./txtmsg-item.js";
+import { CreateCopyComp, MsgItem } from "./txtmsg-item.js";
 const Alerts = util.CreateAlerts();
 const Loading = util.CreateLoading("center");
 const footerElem = util.CreateFooter();
+const TextForCopy = CreateCopyComp();
 const titleArea = m("div").addClass("text-center").append(m("h1").text("txt"));
 const GotoSignIn = util.CreateGotoSignIn();
 const MsgList = cc("div");
-const TextForCopy = cc("input", { id: "TextForCopy" });
 const MsgInput = util.create_textarea();
 const SendBtn = cc("button", { text: "Send" });
 const FormAlerts = util.CreateAlerts();

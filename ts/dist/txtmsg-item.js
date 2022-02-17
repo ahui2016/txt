@@ -32,11 +32,33 @@ export function MsgItem(item) {
                         ? "永久消息"
                         : "暂存消息";
                     ItemAlerts.insert("success", `已转换至[${after}], 3 秒后会自动刷新页面。`);
-                    setTimeout(() => {
-                        location.reload();
-                    }, 3000);
+                    reload();
                 });
-            }), util.LinkElem("#", { text: "edit" }).attr({ title: "修改/别名" }), util.LinkElem("#", { text: "del" }).attr({ title: "彻底删除" }), util.LinkElem("#", { text: "copy" }).attr({ title: "复制内容" }))),
+            }), util.LinkElem("#", { text: "edit" }).attr({ title: "修改/别名" }), util
+                .LinkElem("#", { text: "del" })
+                .attr({ title: "彻底删除" })
+                .addClass("del-btn")
+                .on("click", (e) => {
+                e.preventDefault();
+                const buttonID = self.id + " .del-btn";
+                util.ajax({
+                    method: "POST",
+                    url: "/api/delete",
+                    alerts: ItemAlerts,
+                    buttonID: buttonID,
+                    body: { id: item.ID },
+                }, () => {
+                    ItemAlerts.insert('info', '已删除, 3 秒后会自动刷新页面。');
+                    reload();
+                });
+            }), util
+                .LinkElem("#", { text: "copy" })
+                .attr({ title: "复制内容" })
+                .on("click", (e) => {
+                e.preventDefault();
+                copyToClipboard(item.Msg);
+                ItemAlerts.insert("success", "复制成功");
+            }))),
             m("div").text(item.Msg),
             m(ItemAlerts),
         ],
@@ -46,4 +68,20 @@ export function MsgItem(item) {
 function indexOf(item) {
     const prefix = item.Cat == "Category-Temporary" ? "T" : "P";
     return `${prefix}${item.Index}`;
+}
+export function CreateCopyComp() {
+    return cc("textarea", { id: "text-input-for-copy" });
+}
+function copyToClipboard(s) {
+    const textElem = $("#text-input-for-copy");
+    textElem.show();
+    textElem.val(s).trigger("select");
+    document.execCommand("copy"); // execCommand 准备退役了，但仍没有替代方案，因此继续用。
+    textElem.val("");
+    textElem.hide();
+}
+function reload(second = 3) {
+    setTimeout(() => {
+        location.reload();
+    }, second * 1000);
 }
