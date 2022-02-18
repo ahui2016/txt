@@ -80,3 +80,9 @@ func DateID(offset string) (string, error) {
 	// 因此可以通过加减时间来假装时区变更。
 	return dt.Add(timezone).Format("2006-01-02_150405"), nil
 }
+
+type EditForm struct {
+	ID    string `form:"id" binding:"required"`
+	Alias string `form:"alias"`
+	Msg   string `form:"msg" binding:"required"`
+}

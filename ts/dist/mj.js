@@ -13,7 +13,9 @@ function newComponent(name, id) {
         id: '#' + id,
         raw_id: id,
         view: m(name).attr('id', id),
-        elem: () => $('#' + id)
+        elem: () => $('#' + id),
+        hide: () => $('#' + id).hide(),
+        show: () => $('#' + id).show(),
     };
 }
 /**

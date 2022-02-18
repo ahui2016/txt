@@ -77,6 +77,8 @@ func main() {
 		api.GET("/recent-items", getRecentItems)
 		api.POST("/toggle-category", toggleCatHandler)
 		api.POST("/delete", deleteHandler)
+		api.POST("/get-by-id", getByID)
+		api.POST("/edit", editHandler)
 	}
 
 	if err := r.Run(*addr); err != nil {

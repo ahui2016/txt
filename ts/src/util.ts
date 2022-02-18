@@ -48,28 +48,15 @@ export function enable(name: string | mjComponent): void {
   }
 }
 
-export interface mjLoading extends mjComponent {
-  hide: () => void;
-  show: () => void;
-}
-
-export function CreateLoading(align?: "center"): mjLoading {
+export function CreateLoading(align?: "center"): mjComponent {
   let classes = "Loading";
   if (align == "center") {
     classes += " text-center";
   }
-
   const loading = cc("div", {
     text: "Loading...",
     classes: classes,
-  }) as mjLoading;
-
-  loading.hide = () => {
-    loading.elem().hide();
-  };
-  loading.show = () => {
-    loading.elem().show();
-  };
+  });
   return loading;
 }
 

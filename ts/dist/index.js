@@ -46,12 +46,12 @@ function checkSignIn() {
     util.ajax({ method: "GET", url: "/auth/is-signed-in", alerts: Alerts }, (resp) => {
         const yes = resp;
         if (yes) {
-            Form.elem().show();
+            Form.show();
             util.focus(MsgInput);
             getRecent();
         }
         else {
-            GotoSignIn.elem().show();
+            GotoSignIn.show();
         }
     }, undefined, () => {
         Loading.hide();

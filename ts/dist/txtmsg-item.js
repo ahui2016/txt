@@ -6,13 +6,17 @@ export function ItemID(id) {
 }
 export function MsgItem(item) {
     const ItemAlerts = util.CreateAlerts();
+    let title = `[${indexOf(item)}] ${item.ID}`;
+    if (item.Alias) {
+        title = `[${indexOf(item)}] [${item.Alias}] ${item.ID}`;
+    }
     const self = cc("div", {
         id: ItemID(item.ID),
         classes: "TxtMsgItem",
         children: [
             m("div")
                 .addClass("text-grey")
-                .append(span(`[${indexOf(item)}] ${item.ID}`), m("div")
+                .append(span(title), m("div")
                 .addClass("ItemButtons")
                 .append(span("|").addClass("ml-2"), util
                 .LinkElem("#", { text: "toggle" })
@@ -34,7 +38,12 @@ export function MsgItem(item) {
                     ItemAlerts.insert("success", `已转换至[${after}], 3 秒后会自动刷新页面。`);
                     reload();
                 });
-            }), util.LinkElem("#", { text: "edit" }).attr({ title: "修改/别名" }), util
+            }), util
+                .LinkElem("/public/edit.html?id=" + item.ID, {
+                text: "edit",
+                blank: true,
+            })
+                .attr({ title: "修改/别名" }), util
                 .LinkElem("#", { text: "del" })
                 .attr({ title: "彻底删除" })
                 .addClass("del-btn")
@@ -48,8 +57,9 @@ export function MsgItem(item) {
                     buttonID: buttonID,
                     body: { id: item.ID },
                 }, () => {
-                    ItemAlerts.insert('info', '已删除, 3 秒后会自动刷新页面。');
-                    reload();
+                    self.elem().css({ "font-size": "small", color: "grey" });
+                    self.elem().find(".ItemButtons").removeClass().hide();
+                    ItemAlerts.insert("info", "已删除。注意：全部消息的顺序号已改变，请刷新页面获取新的顺序号。");
                 });
             }), util
                 .LinkElem("#", { text: "copy" })

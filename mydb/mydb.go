@@ -65,6 +65,7 @@ func (db *DB) CheckKey(key string) error {
 	return nil
 }
 
+// InsertTxtMsg 注意此时必然插入到 temp_bucket, 并且 Alias 必然为空。
 func (db *DB) InsertTxtMsg(tm TxtMsg) error {
 	if err := db.DB.Update(func(tx *bolt.Tx) error {
 		return txPutObject(tx, temp_bucket, tm.ID, tm)
@@ -74,20 +75,23 @@ func (db *DB) InsertTxtMsg(tm TxtMsg) error {
 	return db.updateIndex(temp_bucket)
 }
 
-func (db *DB) UpdateTxtMsg(tm TxtMsg) error {
-	// 要注意 Alias 的新增/修改/删除 都要分别处理。
-	return nil
-}
-
-// DeleteTxtMsg 删除 id, 如果 id 不存在也返回 nil.
+// DeleteTxtMsg 删除 id. 注意：如有 Alias 要同步删除。
 func (db *DB) DeleteTxtMsg(id string) error {
-	err := db.DB.Update(func(tx *bolt.Tx) error {
-		b1 := tx.Bucket([]byte(temp_bucket))
-		if err := b1.Delete([]byte(id)); err != nil {
+	tm, err := db.GetByID(id)
+	if err != nil {
+		return err
+	}
+	err = db.DB.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(getBucketName(tm)))
+		if err := b.Delete([]byte(id)); err != nil {
 			return err
 		}
-		b2 := tx.Bucket([]byte(perm_bucket))
-		return b2.Delete([]byte(id))
+		if tm.Alias != "" {
+			if err := txDeleteAlias(tx, tm.Alias); err != nil {
+				return err
+			}
+		}
+		return nil
 	})
 	return err
 }
@@ -109,6 +113,7 @@ func (db *DB) GetByID(id string) (tm TxtMsg, err error) {
 
 // ToggleCat 在暂存消息与永久消息之间转换，为了让转换后的消息排在前面，
 // 转换时会改变 ID, 又由于 ID 同时也是创建日期，因此相当于同时改变创建日期。
+// 注意：如有 Alias 要同步更新 ID.
 func (db *DB) ToggleCat(tm TxtMsg) error {
 	var srcBucket, targetBucket *bolt.Bucket
 	var targetCat model.Category
@@ -129,10 +134,16 @@ func (db *DB) ToggleCat(tm TxtMsg) error {
 		}
 		tm.ID = targetID
 		tm.Cat = targetCat
-		if err := bucketPutObject(targetBucket, []byte(tm.ID), tm); err != nil {
+		if err := bucketPutObject(targetBucket, tm.ID, tm); err != nil {
 			return err
 		}
-		return srcBucket.Delete(srcID)
+		if err := srcBucket.Delete(srcID); err != nil {
+			return err
+		}
+		if tm.Alias != "" {
+			err = txPutAlias(tx, tm.Alias, targetID)
+		}
+		return err
 	}); err != nil {
 		return err
 	}
@@ -172,4 +183,21 @@ func (db *DB) GetRecentItems() ([]TxtMsg, error) {
 		return nil, err
 	}
 	return append(tempItems, permItems...), nil
+}
+
+// Edit from EditForm, 要注意同步更新 Alias.
+func (db *DB) Edit(form model.EditForm) error {
+	tm, err := db.GetByID(form.ID)
+	if err != nil {
+		return err
+	}
+	err = db.DB.Update(func(tx *bolt.Tx) error {
+		if err := txEditAlias(tx, tm.Alias, form.Alias, form.ID); err != nil {
+			return err
+		}
+		tm.Alias = form.Alias
+		tm.Msg = form.Msg
+		return txPutObject(tx, getBucketName(tm), tm.ID, tm)
+	})
+	return err
 }

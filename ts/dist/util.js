@@ -41,12 +41,6 @@ export function CreateLoading(align) {
         text: "Loading...",
         classes: classes,
     });
-    loading.hide = () => {
-        loading.elem().hide();
-    };
-    loading.show = () => {
-        loading.elem().show();
-    };
     return loading;
 }
 /**

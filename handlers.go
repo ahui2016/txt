@@ -2,11 +2,13 @@ package main
 
 import (
 	"embed"
+	"errors"
 	"io/fs"
 	"net/http"
 	"time"
 
 	"github.com/ahui2016/txt/model"
+	"github.com/ahui2016/txt/mydb"
 	"github.com/ahui2016/txt/util"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/static"
@@ -193,4 +195,29 @@ func deleteHandler(c *gin.Context) {
 		return
 	}
 	checkErr(c, db.DeleteTxtMsg(f.ID))
+}
+
+func getByID(c *gin.Context) {
+	var f idForm
+	if BindCheck(c, &f) {
+		return
+	}
+	tm, err := db.GetByID(f.ID)
+	if checkErr(c, err) {
+		return
+	}
+	c.JSON(OK, tm)
+}
+
+func editHandler(c *gin.Context) {
+	var f model.EditForm
+	if BindCheck(c, &f) {
+		return
+	}
+	err := db.Edit(f)
+	if errors.Is(err, mydb.ErrKeyExists) {
+		c.JSON(400, Text{"Alias Exists (别名冲突)"})
+		return
+	}
+	checkErr(c, err)
 }

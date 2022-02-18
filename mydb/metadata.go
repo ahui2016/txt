@@ -2,6 +2,7 @@ package mydb
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/ahui2016/txt/model"
 	"github.com/ahui2016/txt/util"
@@ -43,6 +44,7 @@ var defaultConfig = Config{
 }
 
 var ErrNoResult = errors.New("error-database-no-result")
+var ErrKeyExists = errors.New("error-database-key-exists")
 
 type (
 	Config = model.Config
@@ -67,6 +69,13 @@ func (db *DB) createBuckets() error {
 	return tx.Commit()
 }
 
+func getBucketName(tm TxtMsg) string {
+	if tm.Cat == CatTemp {
+		return temp_bucket
+	}
+	return perm_bucket
+}
+
 // func putBytes(bucket *bolt.Bucket, key string, v []byte) error {
 // 	return bucket.Put([]byte(key), v)
 // }
@@ -77,11 +86,6 @@ func (db *DB) createBuckets() error {
 // func txPutBytes(tx *bolt.Tx, bucket, key string, v []byte) error {
 // 	b := tx.Bucket([]byte(bucket))
 // 	return b.Put([]byte(key), v)
-// }
-
-// func (db *DB) getString(bucket, key string) (string, error) {
-// 	v, err := db.getBytes(bucket, key)
-// 	return string(v), err
 // }
 
 // func (db *DB) getInt64(bucket, key string) (n int64, err error) {
@@ -98,17 +102,17 @@ func (db *DB) createBuckets() error {
 // 	return b.Put([]byte(key), []byte(v))
 // }
 
-func bucketPutObject(bucket *bolt.Bucket, key []byte, v interface{}) error {
+func bucketPutObject(bucket *bolt.Bucket, key string, v interface{}) error {
 	data, err := msgpack.Marshal(v)
 	if err != nil {
 		return err
 	}
-	return bucket.Put(key, data)
+	return bucket.Put([]byte(key), data)
 }
 
 func txPutObject(tx *bolt.Tx, bucket, key string, v interface{}) error {
 	b := tx.Bucket([]byte(bucket))
-	return bucketPutObject(b, []byte(key), v)
+	return bucketPutObject(b, key, v)
 }
 
 func (db *DB) getBytes(bucket, key string) (v []byte, err error) {
@@ -122,6 +126,11 @@ func (db *DB) getBytes(bucket, key string) (v []byte, err error) {
 	})
 	return
 }
+
+// func (db *DB) bucketGetString(bucket *bolt.Bucket, key string) (string, error) {
+// 	v, err := db.getBytes(bucket, key)
+// 	return string(v), err
+// }
 
 func bucketGetTxtMsg(bucket *bolt.Bucket, key []byte) (tm TxtMsg, err error) {
 	data := bucket.Get([]byte(key))
@@ -202,7 +211,7 @@ func bucketUpdateIndex(bucket *bolt.Bucket) error {
 		}
 		tm.Index = max
 		max--
-		return bucketPutObject(bucket, k, tm)
+		return bucketPutObject(bucket, string(k), tm)
 	})
 	return err
 }
@@ -229,4 +238,57 @@ func (db *DB) updateAllIndex() error {
 		return bucketUpdateIndex(b2)
 	})
 	return err
+}
+
+func txPutAlias(tx *bolt.Tx, alias, id string) error {
+	b := tx.Bucket([]byte(alias_bucket))
+	// 确保新别名无冲突
+	if b.Get([]byte(alias)) != nil {
+		return ErrKeyExists
+	}
+	return b.Put([]byte(alias), []byte(id))
+}
+func txDeleteAlias(tx *bolt.Tx, alias string) error {
+	b := tx.Bucket([]byte(alias_bucket))
+	return b.Delete([]byte(alias))
+}
+func txChangeAlias(tx *bolt.Tx, oldAlias, newAlias string) error {
+	// 确保新旧别名都不是空字符串
+	if oldAlias == "" || newAlias == "" {
+		return fmt.Errorf("old alias or new alias is empty")
+	}
+	// 确保旧别名存在
+	b := tx.Bucket([]byte(alias_bucket))
+	id := b.Get([]byte(oldAlias))
+	if id == nil {
+		return ErrNoResult
+	}
+	// 确保新别名无冲突
+	if b.Get([]byte(newAlias)) != nil {
+		return ErrKeyExists
+	}
+	// 插入新别名
+	if err := b.Put([]byte(newAlias), id); err != nil {
+		return err
+	}
+	// 删除旧别名
+	return b.Delete([]byte(oldAlias))
+}
+
+// txEditAlias 专用于 DB.Edit(model.EditForm)
+func txEditAlias(tx *bolt.Tx, oldAlias, newAlias, id string) error {
+	// 从有别名变成无别名（即，删除别名）
+	if oldAlias != "" && newAlias == "" {
+		return txDeleteAlias(tx, oldAlias)
+	}
+	// 从无别名变成有别名（即，新增别名）
+	if oldAlias == "" && newAlias != "" {
+		return txPutAlias(tx, newAlias, id)
+	}
+	// 有别名但新旧别名不相同（即，更改别名）
+	if oldAlias != newAlias {
+		return txChangeAlias(tx, oldAlias, newAlias)
+	}
+	// 新旧别名相同
+	return nil
 }

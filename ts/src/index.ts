@@ -72,11 +72,11 @@ function checkSignIn(): void {
     (resp) => {
       const yes = resp as boolean;
       if (yes) {
-        Form.elem().show();
+        Form.show();
         util.focus(MsgInput);
         getRecent();
       } else {
-        GotoSignIn.elem().show();
+        GotoSignIn.show();
       }
     },
     undefined,

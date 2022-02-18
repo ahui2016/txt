@@ -27,8 +27,8 @@ const SignOutArea = cc("div", {
                 buttonID: SignOutBtn.id,
             }, () => {
                 Alerts.clear().insert("info", "已登出");
-                SignOutArea.elem().hide();
-                SignInForm.elem().show();
+                SignOutArea.hide();
+                SignInForm.show();
                 util.focus(PwdInput);
             });
         }),
@@ -62,14 +62,14 @@ const SignInForm = cc("form", {
                 body: { password: pwd },
             }, () => {
                 PwdInput.elem().val("");
-                SignInForm.elem().hide();
+                SignInForm.hide();
                 Alerts.clear().insert("success", "成功登入");
-                SignOutArea.elem().show();
-                GotoGetKey.elem().hide();
+                SignOutArea.show();
+                GotoGetKey.hide();
             }, (that, errMsg) => {
                 if (that.status == 401) {
                     Alerts.insert("danger", "密码错误");
-                    GotoGetKey.elem().show();
+                    GotoGetKey.show();
                 }
                 else {
                     Alerts.insert("danger", errMsg);
@@ -91,11 +91,11 @@ function checkSignIn() {
         const yes = resp;
         if (yes) {
             Alerts.insert("info", "已登入");
-            SignOutArea.elem().show();
+            SignOutArea.show();
             Loading.hide();
         }
         else {
-            SignInForm.elem().show();
+            SignInForm.show();
             util.focus(PwdInput);
         }
     }, undefined, () => {

@@ -61,9 +61,9 @@ const Form = cc("form", {
             // success
             (resp) => {
                 const currentKey = resp;
-                CurrentKeyArea.elem().show();
+                CurrentKeyArea.show();
                 CurrentKeyArea.init(currentKey);
-                GenKeyBtn.elem().show();
+                GenKeyBtn.show();
                 FormAlerts.clear();
             }, 
             // fail

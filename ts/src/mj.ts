@@ -10,6 +10,8 @@ export interface mjComponent {
   raw_id: string;
   view: mjElement;
   elem: () => mjElement;
+  hide: () => void;
+  show: () => void;
   init?: (arg?: any) => void;
 }
 
@@ -38,7 +40,9 @@ function newComponent(name: string, id: string): mjComponent {
     id: '#'+id,
     raw_id: id,
     view: m(name).attr('id', id),
-    elem: () => $('#'+id)
+    elem: () => $('#'+id),
+    hide: () => $('#'+id).hide(),
+    show: () => $('#'+id).show(),
   };
 }
 

@@ -17,6 +17,10 @@ export function ItemID(id: string): string {
 
 export function MsgItem(item: TxtMsg): mjComponent {
   const ItemAlerts = util.CreateAlerts();
+  let title = `[${indexOf(item)}] ${item.ID}`;
+  if (item.Alias) {
+    title = `[${indexOf(item)}] [${item.Alias}] ${item.ID}`
+  }
   const self = cc("div", {
     id: ItemID(item.ID),
     classes: "TxtMsgItem",
@@ -24,7 +28,7 @@ export function MsgItem(item: TxtMsg): mjComponent {
       m("div")
         .addClass("text-grey")
         .append(
-          span(`[${indexOf(item)}] ${item.ID}`),
+          span(title),
           m("div")
             .addClass("ItemButtons")
             .append(
@@ -57,7 +61,12 @@ export function MsgItem(item: TxtMsg): mjComponent {
                     }
                   );
                 }),
-              util.LinkElem("#", { text: "edit" }).attr({ title: "修改/别名" }),
+              util
+                .LinkElem("/public/edit.html?id=" + item.ID, {
+                  text: "edit",
+                  blank: true,
+                })
+                .attr({ title: "修改/别名" }),
               util
                 .LinkElem("#", { text: "del" })
                 .attr({ title: "彻底删除" })
@@ -74,8 +83,12 @@ export function MsgItem(item: TxtMsg): mjComponent {
                       body: { id: item.ID },
                     },
                     () => {
-                      ItemAlerts.insert('info', '已删除, 3 秒后会自动刷新页面。');
-                      reload();
+                      self.elem().css({ "font-size": "small", color: "grey" });
+                      self.elem().find(".ItemButtons").removeClass().hide();
+                      ItemAlerts.insert(
+                        "info",
+                        "已删除。注意：全部消息的顺序号已改变，请刷新页面获取新的顺序号。"
+                      );
                     }
                   );
                 }),
@@ -114,7 +127,7 @@ function copyToClipboard(s: string): void {
   textElem.hide();
 }
 
-function reload(second = 3):void {
+function reload(second = 3): void {
   setTimeout(() => {
     location.reload();
   }, second * 1000);
