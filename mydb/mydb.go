@@ -19,6 +19,10 @@ const (
 	CatPerm = model.CatPerm
 )
 
+var (
+	ErrSameAsLast = fmt.Errorf("same as last message")
+)
+
 type DB struct {
 	Path   string
 	DB     *bolt.DB
@@ -66,8 +70,21 @@ func (db *DB) CheckKey(key string) error {
 }
 
 // InsertTxtMsg 注意此时必然插入到 temp_bucket, 并且 Alias 必然为空。
+// 要注意暂存消息的数量上限。
 func (db *DB) InsertTxtMsg(tm TxtMsg) error {
 	if err := db.DB.Update(func(tx *bolt.Tx) error {
+		last, err := db.getLastTempMsg()
+		if err != nil {
+			return err
+		}
+		// 如果新消息的内容刚好与最新一条暂存消息相同，则不插入。
+		// 此时只管暂存消息，不管永久消息。
+		if last.Msg == tm.Msg {
+			return ErrSameAsLast
+		}
+		if err := txLimitTemp(tx, db.Config.TempLimit); err != nil {
+			return err
+		}
 		return txPutObject(tx, temp_bucket, tm.ID, tm)
 	}); err != nil {
 		return err
@@ -108,6 +125,15 @@ func (db *DB) GetByID(id string) (tm TxtMsg, err error) {
 	}
 	// 此时 err == nil, 并且 data 也获得了内容。
 	err = msgpack.Unmarshal(data, &tm)
+	return
+}
+
+func (db *DB) getLastTempMsg() (tm TxtMsg, err error) {
+	err = db.DB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(temp_bucket))
+		_, data := b.Cursor().Last()
+		return msgpack.Unmarshal(data, &tm)
+	})
 	return
 }
 

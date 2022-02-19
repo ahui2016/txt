@@ -55,7 +55,7 @@ type Alias struct {
 type ConfigForm struct {
 	KeyMaxAge      int64  `form:"KeyMaxAge"` // Key 的有效期（天）
 	MsgSizeLimit   int    `form:"MsgSizeLimit"`
-	TempLimit      int64  `form:"TempLimit"`
+	TempLimit      int    `form:"TempLimit"`
 	EveryPageLimit int64  `form:"EveryPageLimit"`
 	TimeOffset     string `form:"TimeOffset"`
 }
@@ -63,10 +63,10 @@ type ConfigForm struct {
 type Config struct {
 	Password       string // 主密码，唯一作用是生成 Key
 	Key            string // 日常使用的密钥
-	KeyStarts      int64  // Key 的生效时间 (timestamp)
+	KeyStarts      int64  // Key 的生效时间 (timestamp), 因涉及时间戳而采用 int64
 	KeyMaxAge      int64  // Key 的有效期（秒）
 	MsgSizeLimit   int    // 每条消息的长度上限
-	TempLimit      int64  // 暂存消息条数上限（永久消息不设上限）
+	TempLimit      int    // 暂存消息条数上限（永久消息不设上限）
 	EveryPageLimit int64  // 每页最多列出多少条消息
 	TimeOffset     string // "+8" 表示北京时间, "-5" 表示纽约时间, 依此类推。
 }

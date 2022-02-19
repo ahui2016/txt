@@ -31,7 +31,11 @@ const SubmitBtn = cc("button", { text: "Submit" });
 
 const Form = cc("form", {
   children: [
-    util.create_item(MaxAgeInput, "Key Max Age", "密钥有效期（单位：天），不可小于 1 天"),
+    util.create_item(
+      MaxAgeInput,
+      "Key Max Age",
+      "密钥有效期（单位：天），不可小于 1 天"
+    ),
     util.create_item(
       MsgSizeInput,
       "Message Size Limit",
@@ -42,7 +46,11 @@ const Form = cc("form", {
       "Temporary Messages Limit",
       "暂存消息条数上限，超过上限会自动删除旧消息。不可小于 1。"
     ),
-    util.create_item(PageLimitInput, "Page Limit", "每页最多列出多少条消息，不可小于 1。"),
+    util.create_item(
+      PageLimitInput,
+      "Every Page Limit",
+      "每页最多列出多少条消息，不可小于 1。"
+    ),
     util.create_item(
       TimezoneInput,
       "Timezone Offset",

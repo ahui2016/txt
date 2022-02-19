@@ -3,6 +3,7 @@ package mydb
 import (
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/ahui2016/txt/model"
@@ -115,6 +116,48 @@ func bucketPutObject(bucket *bolt.Bucket, key string, v interface{}) error {
 func txPutObject(tx *bolt.Tx, bucket, key string, v interface{}) error {
 	b := tx.Bucket([]byte(bucket))
 	return bucketPutObject(b, key, v)
+}
+
+// txLimitTemp 限制 temp_bucket 中的数量，如果达到 limit 就删除旧条目。
+// 即, txLimitTemp 执行后，temp_bucket 中的条目数量应小于 limit (而不是小于等于 limit)。
+// 通常在 bucket.Put 之前执行本函数，即, bucket.Put 之后的条目数量小于等于 limit。
+func txLimitTemp(tx *bolt.Tx, limit int) error {
+	if limit < 1 {
+		return nil
+	}
+	bucket := tx.Bucket([]byte(temp_bucket))
+	c := bucket.Cursor()
+
+	// 特殊情况优化 1. 如果 temp_bucket 中的条目数量小于 limit，则不需要删除任何条目。
+	n := bucket.Stats().KeyN
+	log.Print("temp_bucket.Stats().KeyN: ", n)
+	log.Print("limit: ", limit)
+	if n < limit {
+		return nil
+	}
+
+	// 特殊情况优化 2. 如果 temp_bucket 中的条目数量刚好等于 limit，
+	// 则只要删除最早的 1 个条目。
+	if n == limit {
+		k, _ := c.First()
+		log.Print("First key: ", k)
+		return bucket.Delete(k)
+	}
+
+	// 普通情况（无法优化的情况）
+	i := 1
+	for k, _ := c.Last(); k != nil; k, _ = c.Prev() {
+		log.Printf("i: %d, limit: %d", i, limit)
+		if i < limit {
+			i++
+			continue
+		}
+		if err := bucket.Delete(k); err != nil {
+			log.Print("Delete key: ", k)
+			return err
+		}
+	}
+	return nil
 }
 
 func (db *DB) getBytes(bucket, key string) (v []byte, err error) {

@@ -53,6 +53,13 @@ const Form = cc("form", {
               setTimeout(() => {
                 location.reload();
               }, 3000);
+            },
+            (_, errMsg) => {
+              if (errMsg.includes("same as last")) {
+                FormAlerts.insert("info", "与最近一条暂存消息重复，不重复插入。");
+              } else {
+                FormAlerts.insert("danger", errMsg);
+              }
             }
           );
         })

@@ -29,7 +29,7 @@ const Form = cc("form", {
         util.create_item(MaxAgeInput, "Key Max Age", "密钥有效期（单位：天），不可小于 1 天"),
         util.create_item(MsgSizeInput, "Message Size Limit", "每条消息的长度上限 (单位: byte), 不可小于 256。"),
         util.create_item(TempLimitInput, "Temporary Messages Limit", "暂存消息条数上限，超过上限会自动删除旧消息。不可小于 1。"),
-        util.create_item(PageLimitInput, "Page Limit", "每页最多列出多少条消息，不可小于 1。"),
+        util.create_item(PageLimitInput, "Every Page Limit", "每页最多列出多少条消息，不可小于 1。"),
         util.create_item(TimezoneInput, "Timezone Offset", '时区（例如 "+8" 表示北京时间, "-5" 表示纽约时间）, 不可频繁更改时区。'),
         m(FormAlerts),
         m(HiddenBtn)
