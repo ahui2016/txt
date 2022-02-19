@@ -13,6 +13,11 @@ const (
 	CatPerm Category = "Category-Permanent"
 )
 
+const (
+	hour = 60 * 60
+	day  = 24 * hour
+)
+
 type TxtMsg struct {
 	ID     string   // DateID, 既是 id 也是创建日期
 	UserID string   // 暂时不使用，以后升级为多用户系统时使用
@@ -46,6 +51,15 @@ type Alias struct {
 	MsgID string
 }
 
+// ConfigForm 注意 KeyMaxAge 的单位与 Config.KeyMaxAge 不同。
+type ConfigForm struct {
+	KeyMaxAge      int64  `form:"KeyMaxAge"` // Key 的有效期（天）
+	MsgSizeLimit   int    `form:"MsgSizeLimit"`
+	TempLimit      int64  `form:"TempLimit"`
+	EveryPageLimit int64  `form:"EveryPageLimit"`
+	TimeOffset     string `form:"TimeOffset"`
+}
+
 type Config struct {
 	Password       string // 主密码，唯一作用是生成 Key
 	Key            string // 日常使用的密钥
@@ -57,13 +71,14 @@ type Config struct {
 	TimeOffset     string // "+8" 表示北京时间, "-5" 表示纽约时间, 依此类推。
 }
 
-// ConfigForm 注意 KeyMaxAge 的单位与 Config.KeyMaxAge 不同。
-type ConfigForm struct {
-	KeyMaxAge      int64  // Key 的有效期（天）
-	MsgSizeLimit   int    // 每条消息的长度上限
-	TempLimit      int64  // 暂存消息条数上限（永久消息不设上限）
-	EveryPageLimit int64  // 每页最多列出多少条消息
-	TimeOffset     string // "+8" 表示北京时间, "-5" 表示纽约时间, 依此类推。
+func (config *Config) ToConfigForm() ConfigForm {
+	return ConfigForm{
+		KeyMaxAge:      config.KeyMaxAge / day,
+		MsgSizeLimit:   config.MsgSizeLimit,
+		TempLimit:      config.TempLimit,
+		EveryPageLimit: config.EveryPageLimit,
+		TimeOffset:     config.TimeOffset,
+	}
 }
 
 // DateID 返回一个便于通过前缀筛选时间范围的字符串 id,

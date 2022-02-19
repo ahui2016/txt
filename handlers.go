@@ -221,3 +221,19 @@ func editHandler(c *gin.Context) {
 	}
 	checkErr(c, err)
 }
+
+func getConfig(c *gin.Context) {
+	c.JSON(OK, db.Config.ToConfigForm())
+}
+
+func updateConfig(c *gin.Context) {
+	var f model.ConfigForm
+	if BindCheck(c, &f) {
+		return
+	}
+	ignore, err := db.UpdateConfig(f)
+	if checkErr(c, err) {
+		return
+	}
+	c.JSON(OK, Text{ignore})
+}

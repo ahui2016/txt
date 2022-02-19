@@ -3,6 +3,7 @@ package mydb
 import (
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/ahui2016/txt/model"
 	"github.com/ahui2016/txt/util"
@@ -133,14 +134,14 @@ func (db *DB) getBytes(bucket, key string) (v []byte, err error) {
 // 	return string(v), err
 // }
 
-func bucketGetTxtMsg(bucket *bolt.Bucket, key []byte) (tm TxtMsg, err error) {
-	data := bucket.Get([]byte(key))
-	if data == nil {
-		return tm, ErrNoResult
-	}
-	err = msgpack.Unmarshal(data, &tm)
-	return
-}
+// func bucketGetTxtMsg(bucket *bolt.Bucket, key []byte) (tm TxtMsg, err error) {
+// 	data := bucket.Get([]byte(key))
+// 	if data == nil {
+// 		return tm, ErrNoResult
+// 	}
+// 	err = msgpack.Unmarshal(data, &tm)
+// 	return
+// }
 
 func (db *DB) getConfig() (config Config, err error) {
 	data, err := db.getBytes(config_bucket, config_key)
@@ -174,6 +175,53 @@ func (db *DB) updateConfig(config Config) error {
 	// 要记得更新 db.Config
 	db.Config = config
 	return nil
+}
+
+// UpdateConfig updates the config from a ConfigForm.
+func (db *DB) UpdateConfig(cf model.ConfigForm) (warning string, err error) {
+	var ignore []string
+	config := db.Config
+
+	maxAge := cf.KeyMaxAge * day
+	if maxAge < 1 {
+		ignore = append(ignore, "key_max_age")
+	} else {
+		config.KeyMaxAge = cf.KeyMaxAge * day
+	}
+
+	if cf.MsgSizeLimit < 256 {
+		ignore = append(ignore, "msg_size_limit")
+	} else {
+		config.MsgSizeLimit = cf.MsgSizeLimit
+	}
+
+	if cf.TempLimit < 1 {
+		ignore = append(ignore, "temp_msg_limit")
+	} else {
+		config.TempLimit = cf.TempLimit
+	}
+
+	if cf.EveryPageLimit < 1 {
+		ignore = append(ignore, "page_limit")
+	} else {
+		config.EveryPageLimit = cf.EveryPageLimit
+	}
+
+	if _, err = model.DateID(cf.TimeOffset); err != nil {
+		ignore = append(ignore, "timeone_offset")
+	} else {
+		config.TimeOffset = cf.TimeOffset
+	}
+
+	if err = db.updateConfig(config); err != nil {
+		return
+	}
+	if len(ignore) > 0 {
+		warning = "ignore: " + strings.Join(ignore, ", ")
+	}
+	// 要记得更新 db.Config
+	db.Config = config
+	return
 }
 
 func (db *DB) GenNewKey() error {

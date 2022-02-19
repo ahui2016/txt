@@ -79,6 +79,8 @@ func main() {
 		api.POST("/delete", deleteHandler)
 		api.POST("/get-by-id", getByID)
 		api.POST("/edit", editHandler)
+		api.GET("/get-config", getConfig)
+		api.POST("/update-config", updateConfig)
 	}
 
 	if err := r.Run(*addr); err != nil {

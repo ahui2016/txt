@@ -9,7 +9,7 @@ const footerElem = util.CreateFooter();
 const NaviBar = cc("div", {
   classes: "my-5",
   children: [
-    util.LinkElem("/", { text: "home" }),
+    util.LinkElem("/", { text: "Home" }),
     span(" .. "),
     util.LinkElem("/public/secret-key.html", { text: "get secret key" }),
     span(" .. Sign-in"),
@@ -84,11 +84,9 @@ const SignInForm = cc("form", {
             },
             (that, errMsg) => {
               if (that.status == 401) {
-                Alerts.insert("danger", "密码错误");
                 GotoGetKey.show();
-              } else {
-                Alerts.insert("danger", errMsg);
               }
+              Alerts.insert("danger", errMsg);
             },
             () => {
               util.focus(PwdInput);

@@ -253,6 +253,10 @@ export function val(obj: mjElement | mjComponent, trim?: "trim"): string {
   }
 }
 
+export function getNumber(obj: mjElement | mjComponent): number {
+  return Number(val(obj));
+}
+
 export function focus(obj: mjElement | mjComponent): void {
   if ("elem" in obj) {
     obj = obj.elem();

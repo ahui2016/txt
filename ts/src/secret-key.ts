@@ -8,7 +8,7 @@ const footerElem = util.CreateFooter();
 const NaviBar = cc("div", {
   classes: "my-5",
   children: [
-    util.LinkElem("/", { text: "home" }),
+    util.LinkElem("/", { text: "Home" }),
     span(" .. "),
     util.LinkElem("/public/sign-in.html", { text: "Sign-in" }),
     span(" .. Secret Key"),
@@ -25,6 +25,8 @@ const aboutPage = m("div").append(
 
 const CurrentKeyArea = cc("div");
 CurrentKeyArea.init = function (key: util.CurrentKey) {
+  const keyStarts = dayjs.unix(key.Starts).format("YYYY-MM-DD")
+  const keyExpires = dayjs.unix(key.Expires).format("YYYY-MM-DD");
   const self = CurrentKeyArea.elem();
   self.append(
     m("div").append(
@@ -33,7 +35,7 @@ CurrentKeyArea.init = function (key: util.CurrentKey) {
     )
   );
   self.append(
-    m("div").text(`生效日期: ${dayjs.unix(key.Starts).format("YYYY-MM-DD")}`)
+    m("div").text(`生效日期: ${keyStarts}`)
   );
   self.append(m("div").text(`有效期: ${key.MaxAge} (天)`));
   if (key.IsGood) {
@@ -41,22 +43,14 @@ CurrentKeyArea.init = function (key: util.CurrentKey) {
       m("div").append(span("状态: "), span("有效").addClass("alert-success"))
     );
     self.append(
-      m("div")
-        .addClass("form-text")
-        .text(
-          `(该密钥将于 ${dayjs
-            .unix(key.Expires)
-            .format("YYYY-MM-DD")} 自动作废)`
-        )
+      m("div").addClass("form-text").text(`(该密钥将于 ${keyExpires} 自动作废)`)
     );
   } else {
     self.append(
       m("div").append(span("状态: "), span("已失效").addClass("alert-danger"))
     );
     self.append(
-      m("div").text(
-        `该密钥已于 ${dayjs.unix(key.Expires).format("YYYYMMDD")} 作废`
-      )
+      m("div").addClass("form-text").text(`该密钥已于 ${keyExpires} 作废`)
     );
   }
 };
@@ -75,66 +69,68 @@ const Form = cc("form", {
       m(PwdInput)
         .addClass("form-textinput form-textinput-fat")
         .attr({ type: "password" }),
-      m("div").addClass('text-right').append(
-        m(GetKeyBtn).on("click", (event) => {
-          event.preventDefault();
-          const pwd = util.val(PwdInput);
-          if (!pwd) {
-            util.focus(PwdInput);
-            return;
-          }
-          util.disable(GetKeyBtn);
-          util.ajax(
-            {
-              method: "POST",
-              url: "/auth/get-current-key",
-              alerts: FormAlerts,
-              body: { password: pwd },
-            },
-            // success
-            (resp) => {
-              const currentKey = resp as util.CurrentKey;
-              CurrentKeyArea.show();
-              CurrentKeyArea.init!(currentKey);
-              GenKeyBtn.show();
-              FormAlerts.clear();
-            },
-            // fail
-            (_, errMsg) => {
-              util.enable(GetKeyBtn);
-              FormAlerts.insert("danger", errMsg);
-              util.focus(PwdInput);
-            }
-          );
-        }),
-        m(GenKeyBtn)
-          .addClass("ml-2")
-          .on("click", (event) => {
+      m("div")
+        .addClass("text-right")
+        .append(
+          m(GetKeyBtn).on("click", (event) => {
             event.preventDefault();
             const pwd = util.val(PwdInput);
             if (!pwd) {
               util.focus(PwdInput);
               return;
             }
+            util.disable(GetKeyBtn);
             util.ajax(
               {
                 method: "POST",
-                url: "/auth/gen-new-key",
+                url: "/auth/get-current-key",
                 alerts: FormAlerts,
-                buttonID: GenKeyBtn.id,
                 body: { password: pwd },
               },
               // success
               (resp) => {
                 const currentKey = resp as util.CurrentKey;
-                CurrentKeyArea.elem().html("");
+                CurrentKeyArea.show();
                 CurrentKeyArea.init!(currentKey);
-                PwdInput.elem().val("");
+                GenKeyBtn.show();
+                FormAlerts.clear();
+              },
+              // fail
+              (_, errMsg) => {
+                util.enable(GetKeyBtn);
+                FormAlerts.insert("danger", errMsg);
+                util.focus(PwdInput);
               }
             );
-          })
-          .hide()
-      )
+          }),
+          m(GenKeyBtn)
+            .addClass("ml-2")
+            .on("click", (event) => {
+              event.preventDefault();
+              const pwd = util.val(PwdInput);
+              if (!pwd) {
+                util.focus(PwdInput);
+                return;
+              }
+              util.ajax(
+                {
+                  method: "POST",
+                  url: "/auth/gen-new-key",
+                  alerts: FormAlerts,
+                  buttonID: GenKeyBtn.id,
+                  body: { password: pwd },
+                },
+                // success
+                (resp) => {
+                  const currentKey = resp as util.CurrentKey;
+                  CurrentKeyArea.elem().html("");
+                  CurrentKeyArea.init!(currentKey);
+                  PwdInput.elem().val("");
+                }
+              );
+            })
+            .hide()
+        )
     ),
   ],
 });

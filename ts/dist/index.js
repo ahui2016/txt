@@ -1,5 +1,5 @@
 // 采用受 Mithril 启发的基于 jQuery 实现的极简框架 https://github.com/ahui2016/mj.js
-import { m, cc, appendToList } from "./mj.js";
+import { m, cc, span, appendToList } from "./mj.js";
 import * as util from "./util.js";
 import { CreateCopyComp, MsgItem } from "./txtmsg-item.js";
 const Alerts = util.CreateAlerts();
@@ -8,12 +8,23 @@ const footerElem = util.CreateFooter();
 const TextForCopy = CreateCopyComp();
 const titleArea = m("div").addClass("text-center").append(m("h1").text("txt"));
 const GotoSignIn = util.CreateGotoSignIn();
+const NaviBar = cc("div", {
+    classes: "my-5",
+    children: [
+        util.LinkElem("/public/temp.html", { text: "Temp", title: '暂存消息' }),
+        span(" .. "),
+        util.LinkElem("/public/perm.html", { text: "Perm", title: '永久休息' }),
+        span(" .. "),
+        util.LinkElem("/public/config.html", { text: "Config", title: '设定' }),
+    ],
+});
 const MsgList = cc("div");
 const MsgInput = util.create_textarea();
 const SendBtn = cc("button", { text: "Send" });
 const FormAlerts = util.CreateAlerts();
 const Form = cc("form", {
     children: [
+        m(NaviBar),
         m(MsgInput)
             .addClass("form-textinput form-textinput-fat")
             .attr({ placeholder: "New message" }),

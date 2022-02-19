@@ -15,13 +15,11 @@ const GotoSignIn = util.CreateGotoSignIn();
 const NaviBar = cc("div", {
   classes: "my-5",
   children: [
-    util.LinkElem("/", { text: "home" }),
+    util.LinkElem("/public/temp.html", { text: "Temp", title:'暂存消息' }),
     span(" .. "),
-    util.LinkElem("/public/temp.html", { text: "Temp" }),
+    util.LinkElem("/public/perm.html", { text: "Perm", title:'永久休息' }),
     span(" .. "),
-    util.LinkElem("/public/perm.html", { text: "Perm" }),
-    span(" .. "),
-    util.LinkElem("/public/config.html", { text: "Config" }),
+    util.LinkElem("/public/config.html", { text: "Config", title:'设定' }),
   ],
 });
 
@@ -33,6 +31,7 @@ const FormAlerts = util.CreateAlerts();
 
 const Form = cc("form", {
   children: [
+    m(NaviBar),
     m(MsgInput)
       .addClass("form-textinput form-textinput-fat")
       .attr({ placeholder: "New message" }),
@@ -67,7 +66,6 @@ $("#root").append(
   m(Loading).addClass("my-3"),
   m(Alerts),
   m(GotoSignIn).addClass("my-3").hide(),
-  m(NaviBar),
   m(Form).hide(),
   m(MsgList).addClass("mt-3"),
   footerElem.hide(),

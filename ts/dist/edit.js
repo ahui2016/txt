@@ -5,10 +5,9 @@ const id = util.getUrlParam("id");
 let tm;
 const Alerts = util.CreateAlerts();
 const Loading = util.CreateLoading("center");
-const footerElem = util.CreateFooter();
 const NaviBar = cc("div", {
     classes: "my-5",
-    children: [util.LinkElem("/", { text: "home" }), span(" .. Edit")],
+    children: [util.LinkElem("/", { text: "Home" }), span(" .. Edit")],
 });
 const ID_Input = util.create_input();
 const CatInput = util.create_input();

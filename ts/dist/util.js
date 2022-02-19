@@ -192,6 +192,9 @@ export function val(obj, trim) {
         return s;
     }
 }
+export function getNumber(obj) {
+    return Number(val(obj));
+}
 export function focus(obj) {
     if ("elem" in obj) {
         obj = obj.elem();
