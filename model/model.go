@@ -51,7 +51,16 @@ type Config struct {
 	Key            string // 日常使用的密钥
 	KeyStarts      int64  // Key 的生效时间 (timestamp)
 	KeyMaxAge      int64  // Key 的有效期（秒）
-	MsgSizeLimit   int64  // 每条消息的长度上限
+	MsgSizeLimit   int    // 每条消息的长度上限
+	TempLimit      int64  // 暂存消息条数上限（永久消息不设上限）
+	EveryPageLimit int64  // 每页最多列出多少条消息
+	TimeOffset     string // "+8" 表示北京时间, "-5" 表示纽约时间, 依此类推。
+}
+
+// ConfigForm 注意 KeyMaxAge 的单位与 Config.KeyMaxAge 不同。
+type ConfigForm struct {
+	KeyMaxAge      int64  // Key 的有效期（天）
+	MsgSizeLimit   int    // 每条消息的长度上限
 	TempLimit      int64  // 暂存消息条数上限（永久消息不设上限）
 	EveryPageLimit int64  // 每页最多列出多少条消息
 	TimeOffset     string // "+8" 表示北京时间, "-5" 表示纽约时间, 依此类推。

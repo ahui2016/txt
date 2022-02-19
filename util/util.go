@@ -16,7 +16,7 @@ func WrapErrors(allErrors ...error) (wrapped error) {
 			if wrapped == nil {
 				wrapped = err
 			} else {
-				wrapped = fmt.Errorf("%v | %v", err, wrapped)
+				wrapped = fmt.Errorf("%s | %w", wrapped, err)
 			}
 		}
 	}

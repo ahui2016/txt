@@ -12,6 +12,19 @@ const titleArea = m("div").addClass("text-center").append(m("h1").text("txt"));
 
 const GotoSignIn = util.CreateGotoSignIn();
 
+const NaviBar = cc("div", {
+  classes: "my-5",
+  children: [
+    util.LinkElem("/", { text: "home" }),
+    span(" .. "),
+    util.LinkElem("/public/temp.html", { text: "Temp" }),
+    span(" .. "),
+    util.LinkElem("/public/perm.html", { text: "Perm" }),
+    span(" .. "),
+    util.LinkElem("/public/config.html", { text: "Config" }),
+  ],
+});
+
 const MsgList = cc("div");
 
 const MsgInput = util.create_textarea();
@@ -54,6 +67,7 @@ $("#root").append(
   m(Loading).addClass("my-3"),
   m(Alerts),
   m(GotoSignIn).addClass("my-3").hide(),
+  m(NaviBar),
   m(Form).hide(),
   m(MsgList).addClass("mt-3"),
   footerElem.hide(),

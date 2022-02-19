@@ -16,6 +16,14 @@ export interface CurrentKey {
   IsGood: boolean;
 }
 
+export interface ConfigForm {
+	KeyMaxAge      :number;  // Key 的有效期（秒）
+	MsgSizeLimit   :number;  // 每条消息的长度上限
+	TempLimit      :number;  // 暂存消息条数上限（永久消息不设上限）
+	EveryPageLimit :number;  // 每页最多列出多少条消息
+	TimeOffset     :string; // "+8" 表示北京时间, "-5" 表示纽约时间, 依此类推。
+}
+
 // 获取地址栏的参数。
 export function getUrlParam(param: string): string {
   const queryString = new URLSearchParams(document.location.search);

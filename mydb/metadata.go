@@ -45,6 +45,7 @@ var defaultConfig = Config{
 
 var ErrNoResult = errors.New("error-database-no-result")
 var ErrKeyExists = errors.New("error-database-key-exists")
+var ErrMsgTooLong = errors.New("error-message-too-long")
 
 type (
 	Config = model.Config
@@ -199,6 +200,10 @@ func (db *DB) newDateID() (string, error) {
 }
 
 func (db *DB) NewTxtMsg(msg string) (TxtMsg, error) {
+	if len(msg) > db.Config.MsgSizeLimit {
+		err := fmt.Errorf("size: %d, limit: %d", len(msg), db.Config.MsgSizeLimit)
+		return TxtMsg{}, util.WrapErrors(ErrMsgTooLong, err)
+	}
 	return model.NewTxtMsg(msg, db.Config.TimeOffset)
 }
 
