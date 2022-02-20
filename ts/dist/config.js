@@ -3,7 +3,6 @@ import { m, cc, span } from "./mj.js";
 import * as util from "./util.js";
 const Alerts = util.CreateAlerts();
 const Loading = util.CreateLoading("center");
-const GotoSignIn = util.CreateGotoSignIn();
 const NaviBar = cc("div", {
     classes: "my-5",
     children: [
@@ -30,7 +29,7 @@ const Form = cc("form", {
         util.create_item(MsgSizeInput, "Message Size Limit", "每条消息的长度上限 (单位: byte), 不可小于 256。"),
         util.create_item(TempLimitInput, "Temporary Messages Limit", "暂存消息条数上限，超过上限会自动删除旧消息。不可小于 1。"),
         util.create_item(PageLimitInput, "Every Page Limit", "每页最多列出多少条消息，不可小于 1。"),
-        util.create_item(TimezoneInput, "Timezone Offset", '时区（例如 "+8" 表示北京时间, "-5" 表示纽约时间）, 不可频繁更改时区。'),
+        util.create_item(TimezoneInput, "Timezone Offset", '时区（例如 "+8" 表示北京时间, "-5" 表示纽约时间）, 建议不要频繁更改时区。'),
         m(FormAlerts),
         m(HiddenBtn)
             .hide()
@@ -65,10 +64,10 @@ const Form = cc("form", {
         }),
     ],
 });
-$("#root").append(m(NaviBar).addClass("my-3"), m(Loading).addClass("my-3"), m(Alerts).addClass("my-3"), m(GotoSignIn).addClass("my-3").hide(), m(Form).hide(), m("div").text(".").addClass("Footer"));
+$("#root").append(m(NaviBar).addClass("my-3"), m(Loading).addClass("my-3"), m(Alerts).addClass("my-3"), m(Form).hide(), m("div").text(".").addClass("Footer"));
 init();
 function init() {
-    $("title").text("Config .. txt");
+    $("title").text("Config .. txt-online");
     loadData();
 }
 function loadData() {
@@ -80,12 +79,7 @@ function loadData() {
         TempLimitInput.elem().val(config.TempLimit);
         PageLimitInput.elem().val(config.EveryPageLimit);
         TimezoneInput.elem().val(config.TimeOffset);
-    }, (that, errMsg) => {
-        if (that.status == 401) {
-            GotoSignIn.show();
-        }
-        Alerts.insert("danger", errMsg);
-    }, () => {
+    }, undefined, () => {
         Loading.hide();
     });
 }

@@ -9,8 +9,8 @@ import (
 type Category string
 
 const (
-	CatTemp Category = "Category-Temporary"
-	CatPerm Category = "Category-Permanent"
+	CatTemp Category = "Temporary"
+	CatPerm Category = "Permanent"
 )
 
 const (
@@ -56,7 +56,7 @@ type ConfigForm struct {
 	KeyMaxAge      int64  `form:"KeyMaxAge"` // Key 的有效期（天）
 	MsgSizeLimit   int    `form:"MsgSizeLimit"`
 	TempLimit      int    `form:"TempLimit"`
-	EveryPageLimit int64  `form:"EveryPageLimit"`
+	EveryPageLimit int    `form:"EveryPageLimit"`
 	TimeOffset     string `form:"TimeOffset"`
 }
 
@@ -67,7 +67,7 @@ type Config struct {
 	KeyMaxAge      int64  // Key 的有效期（秒）
 	MsgSizeLimit   int    // 每条消息的长度上限
 	TempLimit      int    // 暂存消息条数上限（永久消息不设上限）
-	EveryPageLimit int64  // 每页最多列出多少条消息
+	EveryPageLimit int    // 每页最多列出多少条消息
 	TimeOffset     string // "+8" 表示北京时间, "-5" 表示纽约时间, 依此类推。
 }
 

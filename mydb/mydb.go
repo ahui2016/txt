@@ -182,7 +182,12 @@ func (db *DB) getTxtMsgLimit(bucket, start string, limit int) (items []TxtMsg, e
 	i := 0
 	err = db.DB.View(func(tx *bolt.Tx) error {
 		c := tx.Bucket([]byte(bucket)).Cursor()
-		for k, v := c.Last(); k != nil; k, v = c.Prev() {
+		k, v := c.Last()
+		if start != "" {
+			_, _ = c.Seek([]byte(start))
+			k, v = c.Prev()
+		}
+		for ; k != nil; k, v = c.Prev() {
 			if i >= limit {
 				break
 			}
@@ -209,6 +214,13 @@ func (db *DB) GetRecentItems() ([]TxtMsg, error) {
 		return nil, err
 	}
 	return append(tempItems, permItems...), nil
+}
+
+func (db *DB) GetMoreItems(cat, start string, limit int) ([]TxtMsg, error) {
+	if limit <= 0 {
+		limit = db.Config.EveryPageLimit
+	}
+	return db.getTxtMsgLimit(cat, start, limit)
 }
 
 // Edit from EditForm, 要注意同步更新 Alias.

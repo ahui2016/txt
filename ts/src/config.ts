@@ -5,8 +5,6 @@ import * as util from "./util.js";
 const Alerts = util.CreateAlerts();
 const Loading = util.CreateLoading("center");
 
-const GotoSignIn = util.CreateGotoSignIn();
-
 const NaviBar = cc("div", {
   classes: "my-5",
   children: [
@@ -54,7 +52,7 @@ const Form = cc("form", {
     util.create_item(
       TimezoneInput,
       "Timezone Offset",
-      '时区（例如 "+8" 表示北京时间, "-5" 表示纽约时间）, 不可频繁更改时区。'
+      '时区（例如 "+8" 表示北京时间, "-5" 表示纽约时间）, 建议不要频繁更改时区。'
     ),
     m(FormAlerts),
     m(HiddenBtn)
@@ -98,7 +96,6 @@ $("#root").append(
   m(NaviBar).addClass("my-3"),
   m(Loading).addClass("my-3"),
   m(Alerts).addClass("my-3"),
-  m(GotoSignIn).addClass("my-3").hide(),
   m(Form).hide(),
   m("div").text(".").addClass("Footer")
 );
@@ -106,7 +103,7 @@ $("#root").append(
 init();
 
 function init() {
-  $("title").text("Config .. txt");
+  $("title").text("Config .. txt-online");
   loadData();
 }
 
@@ -122,12 +119,7 @@ function loadData() {
       PageLimitInput.elem().val(config.EveryPageLimit);
       TimezoneInput.elem().val(config.TimeOffset);
     },
-    (that, errMsg) => {
-      if (that.status == 401) {
-        GotoSignIn.show();
-      }
-      Alerts.insert("danger", errMsg);
-    },
+    undefined,
     () => {
       Loading.hide();
     }

@@ -89,7 +89,7 @@ $("#root").append(
 init();
 
 function init() {
-  $("title").text("Edit .. txt");
+  $("title").text("Edit .. txt-online");
   if (!id) {
     Loading.hide();
     Alerts.insert("danger", "未指定 id");

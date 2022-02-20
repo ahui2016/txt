@@ -177,6 +177,23 @@ func getRecentItems(c *gin.Context) {
 	c.JSON(OK, items)
 }
 
+func getMoreItems(c *gin.Context) {
+	type form struct {
+		Cat   string `form:"cat" binding:"required"`
+		ID    string `form:"id"`
+		Limit int    `form:"limit" binding:"required"`
+	}
+	var f form
+	if BindCheck(c, &f) {
+		return
+	}
+	items, err := db.GetMoreItems(f.Cat, f.ID, f.Limit)
+	if checkErr(c, err) {
+		return
+	}
+	c.JSON(OK, items)
+}
+
 func toggleCatHandler(c *gin.Context) {
 	var f idForm
 	if BindCheck(c, &f) {

@@ -81,6 +81,7 @@ func main() {
 		api.POST("/edit", editHandler)
 		api.GET("/get-config", getConfig)
 		api.POST("/update-config", updateConfig)
+		api.POST("/get-more-items", getMoreItems)
 	}
 
 	if err := r.Run(*addr); err != nil {

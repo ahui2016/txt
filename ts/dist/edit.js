@@ -63,7 +63,7 @@ const Form = cc("form", {
 $("#root").append(m(NaviBar).addClass("my-3"), m(Loading).addClass("my-3"), m(Alerts).addClass("my-3"), m(Form).hide(), m("div").text(".").addClass("Footer"));
 init();
 function init() {
-    $("title").text("Edit .. txt");
+    $("title").text("Edit .. txt-online");
     if (!id) {
         Loading.hide();
         Alerts.insert("danger", "未指定 id");

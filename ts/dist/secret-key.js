@@ -102,6 +102,6 @@ const Form = cc("form", {
 $("#root").append(m(NaviBar), aboutPage, m(Form), m(FormAlerts), m(CurrentKeyArea).addClass("my-5").hide(), footerElem.hide());
 init();
 function init() {
-    $("title").text("Secret Key .. txt");
+    $("title").text("Secret Key .. txt-online");
     util.focus(PwdInput);
 }

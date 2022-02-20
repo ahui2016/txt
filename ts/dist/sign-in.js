@@ -80,7 +80,7 @@ const SignInForm = cc("form", {
 $("#root").append(m(NaviBar), m(Loading).addClass("my-3"), m(SignInForm).hide(), m(Alerts), m(GotoGetKey).hide(), m(SignOutArea).addClass("my-5").hide(), footerElem.hide());
 init();
 function init() {
-    $('title').text("Sign-in .. txt");
+    $('title').text("Sign-in .. txt-online");
     checkSignIn();
 }
 function checkSignIn() {

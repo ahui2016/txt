@@ -147,6 +147,6 @@ $("#root").append(
 init();
 
 function init() {
-  $("title").text("Secret Key .. txt");
+  $("title").text("Secret Key .. txt-online");
   util.focus(PwdInput);
 }
