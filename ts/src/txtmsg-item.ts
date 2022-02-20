@@ -50,7 +50,7 @@ export function MsgItem(item: TxtMsg): mjComponent {
                     },
                     () => {
                       const after =
-                        item.Cat == "Category-Temporary"
+                        item.Cat == "Temporary"
                           ? "永久消息"
                           : "暂存消息";
                       ItemAlerts.insert(
@@ -110,7 +110,7 @@ export function MsgItem(item: TxtMsg): mjComponent {
 }
 
 function indexOf(item: TxtMsg): string {
-  const prefix = item.Cat == "Category-Temporary" ? "T" : "P";
+  const prefix = item.Cat == "Temporary" ? "T" : "P";
   return `${prefix}${item.Index}`;
 }
 

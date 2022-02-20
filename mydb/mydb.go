@@ -114,25 +114,21 @@ func (db *DB) DeleteTxtMsg(id string) error {
 }
 
 func (db *DB) GetByID(id string) (tm TxtMsg, err error) {
-	data, err := db.getBytes(temp_bucket, id)
-	if err != nil && err != ErrNoResult {
-		return
-	}
-	if err == ErrNoResult {
-		if data, err = db.getBytes(perm_bucket, id); err != nil {
-			return
-		}
-	}
-	// 此时 err == nil, 并且 data 也获得了内容。
-	err = msgpack.Unmarshal(data, &tm)
+	err = db.DB.View(func(tx *bolt.Tx) error {
+		tm, err = txGetByID(tx, id)
+		return err
+	})
 	return
 }
 
 func (db *DB) getLastTempMsg() (tm TxtMsg, err error) {
 	err = db.DB.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(temp_bucket))
-		_, data := b.Cursor().Last()
-		return msgpack.Unmarshal(data, &tm)
+		k, v := b.Cursor().Last()
+		if k == nil {
+			return nil
+		}
+		return msgpack.Unmarshal(v, &tm)
 	})
 	return
 }
@@ -167,7 +163,7 @@ func (db *DB) ToggleCat(tm TxtMsg) error {
 			return err
 		}
 		if tm.Alias != "" {
-			err = txPutAlias(tx, tm.Alias, targetID)
+			err = txPutAlias(tx, tm.Alias, targetID, true)
 		}
 		return err
 	}); err != nil {
@@ -203,6 +199,31 @@ func (db *DB) getTxtMsgLimit(bucket, start string, limit int) (items []TxtMsg, e
 	return
 }
 
+func (db *DB) getAliasLimit(start string, limit int) (items []TxtMsg, err error) {
+	i := 0
+	err = db.DB.View(func(tx *bolt.Tx) error {
+		c := tx.Bucket([]byte(alias_bucket)).Cursor()
+		alias, id := c.First()
+		if start != "" {
+			_, _ = c.Seek([]byte(start))
+			alias, id = c.Next()
+		}
+		for ; alias != nil; alias, id = c.Next() {
+			if i >= limit {
+				break
+			}
+			tm, err := txGetByID(tx, string(id))
+			if err != nil {
+				return err
+			}
+			items = append(items, tm)
+			i++
+		}
+		return nil
+	})
+	return
+}
+
 func (db *DB) GetRecentItems() ([]TxtMsg, error) {
 	limit := 15
 	tempItems, err := db.getTxtMsgLimit(temp_bucket, "", limit)
@@ -216,11 +237,14 @@ func (db *DB) GetRecentItems() ([]TxtMsg, error) {
 	return append(tempItems, permItems...), nil
 }
 
-func (db *DB) GetMoreItems(cat, start string, limit int) ([]TxtMsg, error) {
+func (db *DB) GetMoreItems(bucket, start string, limit int) ([]TxtMsg, error) {
 	if limit <= 0 {
 		limit = db.Config.EveryPageLimit
 	}
-	return db.getTxtMsgLimit(cat, start, limit)
+	if bucket == alias_bucket {
+		return db.getAliasLimit(start, limit)
+	}
+	return db.getTxtMsgLimit(bucket, start, limit)
 }
 
 // Edit from EditForm, 要注意同步更新 Alias.

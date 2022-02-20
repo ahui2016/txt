@@ -32,7 +32,7 @@ export function MsgItem(item) {
                     buttonID: buttonID,
                     body: { id: item.ID },
                 }, () => {
-                    const after = item.Cat == "Category-Temporary"
+                    const after = item.Cat == "Temporary"
                         ? "永久消息"
                         : "暂存消息";
                     ItemAlerts.insert("success", `已转换至[${after}], 3 秒后会自动刷新页面。`);
@@ -76,7 +76,7 @@ export function MsgItem(item) {
     return self;
 }
 function indexOf(item) {
-    const prefix = item.Cat == "Category-Temporary" ? "T" : "P";
+    const prefix = item.Cat == "Temporary" ? "T" : "P";
     return `${prefix}${item.Index}`;
 }
 export function CreateCopyComp() {

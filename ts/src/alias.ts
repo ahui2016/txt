@@ -3,7 +3,7 @@ import { mjElement, mjComponent, m, cc, span, appendToList } from "./mj.js";
 import * as util from "./util.js";
 import { CreateCopyComp, MsgItem, TxtMsg } from "./txtmsg-item.js";
 
-var last_id = "";
+var last_alias = "";
 
 const Alerts = util.CreateAlerts();
 const Loading = util.CreateLoading("center");
@@ -16,8 +16,8 @@ const NaviBar = cc("div", {
     span(" .. "),
     util.LinkElem("/public/perm.html", { text: "Perm" }),
     span(" .. "),
-    util.LinkElem("/public/alias.html", { text: "Alias" }),
-    span(" .. Temporary Messages (暂存消息)"),
+    util.LinkElem("/public/temp.html", { text: "Temp" }),
+    span(" .. Aliases (有别名的消息)"),
   ],
 });
 
@@ -28,7 +28,7 @@ const MoreBtnArea = cc("div", {
   children: [
     m(MoreBtn).on("click", (e) => {
       e.preventDefault();
-      getMoreTemp();
+      getMoreAlias();
     }),
   ],
 });
@@ -46,14 +46,14 @@ $("#root").append(
 init();
 
 function init() {
-  $("title").text("Temp Msg .. txt-online");
-  getMoreTemp();
+  $("title").text("Aliases .. txt-online");
+  getMoreAlias();
 }
 
-function getMoreTemp(): void {
+function getMoreAlias(): void {
   const body = {
-    bucket: "temporary-bucket",
-    start: last_id,
+    bucket: "alias-bucket",
+    start: last_alias,
     limit: -1, // 小于等于零表示采用默认值
   };
   util.ajax(
@@ -69,12 +69,12 @@ function getMoreTemp(): void {
       const items = resp as TxtMsg[];
       if (items && items.length > 0) {
         appendToList(MsgList, items.map(MsgItem));
-        if (last_id == "") {
+        if (last_alias == "") {
           MoreBtnArea.show();
         }
-        last_id = items[items.length - 1].ID;
+        last_alias = items[items.length - 1].Alias;
       } else {
-        if (last_id == "") {
+        if (last_alias == "") {
           Alerts.insert("info", "空空如也");
         } else {
           Alerts.insert("info", "没有更多了");

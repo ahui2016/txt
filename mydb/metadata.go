@@ -160,15 +160,35 @@ func txLimitTemp(tx *bolt.Tx, limit int) error {
 	return nil
 }
 
+func txGetBytes(tx *bolt.Tx, bucket, key string) ([]byte, error) {
+	b := tx.Bucket([]byte(bucket))
+	v := b.Get([]byte(key))
+	if v == nil {
+		return nil, ErrNoResult
+	}
+	return v, nil
+}
+
 func (db *DB) getBytes(bucket, key string) (v []byte, err error) {
 	err = db.DB.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(bucket))
-		v = b.Get([]byte(key))
-		if v == nil {
-			return ErrNoResult
-		}
-		return nil
+		v, err = txGetBytes(tx, bucket, key)
+		return err
 	})
+	return
+}
+
+func txGetByID(tx *bolt.Tx, id string) (tm TxtMsg, err error) {
+	data, err := txGetBytes(tx, temp_bucket, id)
+	if err != nil && err != ErrNoResult {
+		return
+	}
+	if err == ErrNoResult {
+		if data, err = txGetBytes(tx, perm_bucket, id); err != nil {
+			return
+		}
+	}
+	// 此时 err == nil, 并且 data 也获得了内容。
+	err = msgpack.Unmarshal(data, &tm)
 	return
 }
 
@@ -360,10 +380,9 @@ func (db *DB) updateAllIndex() error {
 	return err
 }
 
-func txPutAlias(tx *bolt.Tx, alias, id string) error {
+func txPutAlias(tx *bolt.Tx, alias, id string, overwrite bool) error {
 	b := tx.Bucket([]byte(alias_bucket))
-	// 确保新别名无冲突
-	if b.Get([]byte(alias)) != nil {
+	if !overwrite && b.Get([]byte(alias)) != nil {
 		return ErrKeyExists
 	}
 	return b.Put([]byte(alias), []byte(id))
@@ -403,7 +422,7 @@ func txEditAlias(tx *bolt.Tx, oldAlias, newAlias, id string) error {
 	}
 	// 从无别名变成有别名（即，新增别名）
 	if oldAlias == "" && newAlias != "" {
-		return txPutAlias(tx, newAlias, id)
+		return txPutAlias(tx, newAlias, id, false)
 	}
 	// 有别名但新旧别名不相同（即，更改别名）
 	if oldAlias != newAlias {

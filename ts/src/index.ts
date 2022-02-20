@@ -8,18 +8,22 @@ const Loading = util.CreateLoading("center");
 const footerElem = util.CreateFooter();
 const TextForCopy = CreateCopyComp();
 
-const titleArea = m("div").addClass("text-center").append(m("h1").text("txt"));
+const titleArea = m("div")
+  .addClass("text-center")
+  .append(m("h1").text("txt online"));
 
 const GotoSignIn = util.CreateGotoSignIn();
 
 const NaviBar = cc("div", {
   classes: "my-5",
   children: [
-    util.LinkElem("/public/temp.html", { text: "Temp", title:'暂存消息' }),
+    util.LinkElem("/public/temp.html", { text: "Temp", title: "暂存消息" }),
     span(" .. "),
-    util.LinkElem("/public/perm.html", { text: "Perm", title:'永久休息' }),
+    util.LinkElem("/public/perm.html", { text: "Perm", title: "永久休息" }),
     span(" .. "),
-    util.LinkElem("/public/config.html", { text: "Config", title:'设定' }),
+    util.LinkElem("/public/alias.html", { text: "Alias", title: "别名" }),
+    span(" .. "),
+    util.LinkElem("/public/config.html", { text: "Config", title: "设定" }),
   ],
 });
 
@@ -35,6 +39,7 @@ const Form = cc("form", {
     m(MsgInput)
       .addClass("form-textinput form-textinput-fat")
       .attr({ placeholder: "New message" }),
+    m(FormAlerts),
     m("div")
       .addClass("text-right")
       .append(
@@ -56,7 +61,10 @@ const Form = cc("form", {
             },
             (_, errMsg) => {
               if (errMsg.includes("same as last")) {
-                FormAlerts.insert("info", "与最近一条暂存消息重复，不重复插入。");
+                FormAlerts.insert(
+                  "info",
+                  "与最近一条暂存消息重复，不重复插入。"
+                );
               } else {
                 FormAlerts.insert("danger", errMsg);
               }
@@ -64,7 +72,6 @@ const Form = cc("form", {
           );
         })
       ),
-    m(FormAlerts),
   ],
 });
 
@@ -74,7 +81,7 @@ $("#root").append(
   m(Alerts),
   m(GotoSignIn).addClass("my-3").hide(),
   m(Form).hide(),
-  m(MsgList).addClass("mt-3"),
+  m(MsgList).addClass("mb-5"),
   footerElem.hide(),
   m(TextForCopy).hide()
 );

@@ -12,6 +12,8 @@ const NaviBar = cc("div", {
         util.LinkElem("/public/index.html", { text: "Home" }),
         span(" .. "),
         util.LinkElem("/public/temp.html", { text: "Temp" }),
+        span(" .. "),
+        util.LinkElem("/public/alias.html", { text: "Alias" }),
         span(" .. Permanent Messages (永久消息)"),
     ],
 });
@@ -21,7 +23,7 @@ const MoreBtnArea = cc("div", {
     children: [
         m(MoreBtn).on("click", (e) => {
             e.preventDefault();
-            getMoreTemp();
+            getMorePerm();
         }),
     ],
 });
@@ -29,12 +31,12 @@ $("#root").append(m(NaviBar), m(Loading).addClass("my-3"), m(MsgList).addClass("
 init();
 function init() {
     $("title").text("Perm Msg .. txt-online");
-    getMoreTemp();
+    getMorePerm();
 }
-function getMoreTemp() {
+function getMorePerm() {
     const body = {
-        cat: "permanent-bucket",
-        id: last_id,
+        bucket: "permanent-bucket",
+        start: last_id,
         limit: -1, // 小于等于零表示采用默认值
     };
     util.ajax({
