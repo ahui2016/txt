@@ -11,7 +11,7 @@ const NaviBar = cc("div", {
   children: [
     util.LinkElem("/", { text: "Home" }),
     span(" .. "),
-    util.LinkElem("/public/secret-key.html", { text: "get secret key" }),
+    util.LinkElem("/public/secret-key.html", { text: "Key and Password" }),
     span(" .. Sign-in"),
   ],
 });

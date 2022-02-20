@@ -9,10 +9,11 @@ const NaviBar = cc("div", {
         util.LinkElem("/", { text: "Home" }),
         span(" .. "),
         util.LinkElem("/public/sign-in.html", { text: "Sign-in" }),
-        span(" .. Secret Key"),
+        span(" .. Key and Password"),
     ],
 });
-const aboutPage = m("div").append(m("p").text("输入主密码，点击 Get Key 按钮可获取当前密钥。" +
+const aboutPage = m("div").append('本软件的安全措施分为 "主密码" 与 "日常操作密钥"。主密码的唯一用途是获取当前密钥或生成新密钥，', "其他操作如果要求输入密码，一律是指日常操作密钥（以下简称密钥）。");
+const aboutSecretKey = m("div").append(m("h3").text("Secret Key").addClass("mb-0"), m("hr"), m("p").text("输入主密码，点击 Get Key 按钮可获取当前密钥。" +
     "获取密钥后会出现 Generate 按钮，点击该按钮可生成新的密钥。" +
     "一旦生成新密钥，旧密钥就会作废。"));
 const CurrentKeyArea = cc("div");
@@ -99,9 +100,10 @@ const Form = cc("form", {
             .hide())),
     ],
 });
-$("#root").append(m(NaviBar), aboutPage, m(Form), m(FormAlerts), m(CurrentKeyArea).addClass("my-5").hide(), footerElem.hide());
+const aboutPassword = m("div").append(m("h3").text("Change Master Password").addClass("mb-0"), m("hr"), m("p").text("可在此修改主密码。"));
+$("#root").append(m(NaviBar), aboutPage.addClass("my-3"), aboutSecretKey, m(Form), m(FormAlerts), m(CurrentKeyArea).addClass("my-5").hide(), aboutPassword.addClass("my-5"), footerElem.hide());
 init();
 function init() {
-    $("title").text("Secret Key .. txt-online");
+    $("title").text("Password .. txt-online");
     util.focus(PwdInput);
 }

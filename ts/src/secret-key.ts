@@ -11,11 +11,18 @@ const NaviBar = cc("div", {
     util.LinkElem("/", { text: "Home" }),
     span(" .. "),
     util.LinkElem("/public/sign-in.html", { text: "Sign-in" }),
-    span(" .. Secret Key"),
+    span(" .. Key and Password"),
   ],
 });
 
 const aboutPage = m("div").append(
+  '本软件的安全措施分为 "主密码" 与 "日常操作密钥"。主密码的唯一用途是获取当前密钥或生成新密钥，',
+  "其他操作如果要求输入密码，一律是指日常操作密钥（以下简称密钥）。"
+);
+
+const aboutSecretKey = m("div").append(
+  m("h3").text("Secret Key").addClass("mb-0"),
+  m("hr"),
   m("p").text(
     "输入主密码，点击 Get Key 按钮可获取当前密钥。" +
       "获取密钥后会出现 Generate 按钮，点击该按钮可生成新的密钥。" +
@@ -25,7 +32,7 @@ const aboutPage = m("div").append(
 
 const CurrentKeyArea = cc("div");
 CurrentKeyArea.init = function (key: util.CurrentKey) {
-  const keyStarts = dayjs.unix(key.Starts).format("YYYY-MM-DD")
+  const keyStarts = dayjs.unix(key.Starts).format("YYYY-MM-DD");
   const keyExpires = dayjs.unix(key.Expires).format("YYYY-MM-DD");
   const self = CurrentKeyArea.elem();
   self.append(
@@ -34,9 +41,7 @@ CurrentKeyArea.init = function (key: util.CurrentKey) {
       m("input").addClass("ml-2").val(key.Key).prop({ readonly: true })
     )
   );
-  self.append(
-    m("div").text(`生效日期: ${keyStarts}`)
-  );
+  self.append(m("div").text(`生效日期: ${keyStarts}`));
   self.append(m("div").text(`有效期: ${key.MaxAge} (天)`));
   if (key.IsGood) {
     self.append(
@@ -135,18 +140,26 @@ const Form = cc("form", {
   ],
 });
 
+const aboutPassword = m("div").append(
+  m("h3").text("Change Master Password").addClass("mb-0"),
+  m("hr"),
+  m("p").text("可在此修改主密码。")
+);
+
 $("#root").append(
   m(NaviBar),
-  aboutPage,
+  aboutPage.addClass("my-3"),
+  aboutSecretKey,
   m(Form),
   m(FormAlerts),
   m(CurrentKeyArea).addClass("my-5").hide(),
+  aboutPassword.addClass("my-5"),
   footerElem.hide()
 );
 
 init();
 
 function init() {
-  $("title").text("Secret Key .. txt-online");
+  $("title").text("Password .. txt-online");
   util.focus(PwdInput);
 }

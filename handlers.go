@@ -141,6 +141,10 @@ func getCurrentKey(c *gin.Context) {
 }
 
 func generateKeyHandler(c *gin.Context) {
+	if *demo {
+		c.JSON(500, Text{"Demo Mode (演示模式) 不可更新密钥。"})
+		return
+	}
 	var form SignInForm
 	if BindCheck(c, &form) {
 		return
@@ -244,6 +248,10 @@ func getConfig(c *gin.Context) {
 }
 
 func updateConfig(c *gin.Context) {
+	if *demo {
+		c.JSON(500, Text{"Demo Mode (演示模式) 不可修改配置"})
+		return
+	}
 	var f model.ConfigForm
 	if BindCheck(c, &f) {
 		return
