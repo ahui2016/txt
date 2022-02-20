@@ -69,6 +69,7 @@ func main() {
 		auth.GET("/sign-out", signOutHandler)
 		auth.POST("/get-current-key", getCurrentKey)
 		auth.POST("/gen-new-key", generateKeyHandler)
+		auth.POST("/change-pwd", changePwdHandler)
 	}
 
 	api := r.Group("/api", Sleep(), CheckSignIn())

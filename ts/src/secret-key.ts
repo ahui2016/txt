@@ -74,6 +74,7 @@ const Form = cc("form", {
       m(PwdInput)
         .addClass("form-textinput form-textinput-fat")
         .attr({ type: "password" }),
+      m(FormAlerts),
       m("div")
         .addClass("text-right")
         .append(
@@ -146,15 +147,57 @@ const aboutPassword = m("div").append(
   m("p").text("可在此修改主密码。")
 );
 
+const CurrentPwd = util.create_input("password");
+const NewPwd = util.create_input();
+const SubmitBtn = cc("button", { text: "Change Password" });
+const PwdAlerts = util.CreateAlerts();
+
+const PwdForm = cc("form", {
+  children: [
+    util
+      .create_item(CurrentPwd, "Current Password", "")
+      .attr({ autocomplete: "current-password" }),
+    util
+      .create_item(NewPwd, "New Password", "")
+      .attr({ autocomplete: "new-password" }),
+    m(PwdAlerts),
+    m(SubmitBtn).on("click", (event) => {
+      event.preventDefault();
+      const body = {
+        oldpwd: util.val(CurrentPwd),
+        newpwd: util.val(NewPwd),
+      };
+      if (!body.oldpwd || !body.newpwd) {
+        PwdAlerts.insert("danger", "当前密码与新密码都必填");
+        return;
+      }
+      util.ajax(
+        {
+          method: "POST",
+          url: "/auth/change-pwd",
+          alerts: PwdAlerts,
+          buttonID: SubmitBtn.id,
+          body: body,
+        },
+        () => {
+          PwdAlerts.clear().insert("success", "已成功更改主密码。");
+          CurrentPwd.elem().val("");
+          NewPwd.elem().val("");
+        }
+      );
+    }),
+  ],
+});
+
 $("#root").append(
   m(NaviBar),
   aboutPage.addClass("my-3"),
   aboutSecretKey,
   m(Form),
-  m(FormAlerts),
-  m(CurrentKeyArea).addClass("my-5").hide(),
-  aboutPassword.addClass("my-5"),
-  footerElem.hide()
+  m(CurrentKeyArea).addClass("mb-5").hide(),
+  aboutPassword.addClass("mt-5"),
+  m(PwdForm),
+  footerElem
 );
 
 init();

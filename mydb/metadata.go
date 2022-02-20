@@ -277,6 +277,30 @@ func (db *DB) GenNewKey() error {
 	return db.updateConfig(config)
 }
 
+// ChangePassword 修改密码，其中 oldPwd 由于涉及 ip 尝试次数，因此应在
+// 使用本函数前使用 db.CheckPassword 验证 oldPwd.
+func (db *DB) ChangePwd(oldPwd, newPwd string) error {
+	if oldPwd == "" {
+		return fmt.Errorf("the current password is empty")
+	}
+	if newPwd == "" {
+		return fmt.Errorf("the new password is empty")
+	}
+	if newPwd == oldPwd {
+		return fmt.Errorf("the two passwords are the same")
+	}
+
+	config, err := db.getConfig()
+	if err != nil {
+		return err
+	}
+	if config.Password != oldPwd {
+		return fmt.Errorf("the current password is wrong")
+	}
+	config.Password = newPwd
+	return db.updateConfig(config)
+}
+
 func (db *DB) Count(bucket string) (n int) {
 	_ = db.DB.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(bucket))

@@ -158,6 +158,26 @@ func generateKeyHandler(c *gin.Context) {
 	writeKeyResult(c, db.Config)
 }
 
+type ChangePwdForm struct {
+	CurrentPwd string `form:"oldpwd" binding:"required"`
+	NewPwd     string `form:"newpwd" binding:"required"`
+}
+
+func changePwdHandler(c *gin.Context) {
+	if *demo {
+		c.JSON(500, Text{"Demo Mode (演示模式) 不可更改主密码。"})
+		return
+	}
+	var form ChangePwdForm
+	if BindCheck(c, &form) {
+		return
+	}
+	if checkPwdAndIP(c, form.CurrentPwd) {
+		return
+	}
+	checkErr(c, db.ChangePwd(form.CurrentPwd, form.NewPwd))
+}
+
 func addTxtMsg(c *gin.Context) {
 	type form struct {
 		Msg string `form:"msg" binding:"required"`
