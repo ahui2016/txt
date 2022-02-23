@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -86,4 +87,11 @@ func RandomBytes(size int) []byte {
 func RandomString(size int) string {
 	someBytes := RandomBytes(size)
 	return Base64Encode(someBytes)
+}
+
+// NoCaseContains reports whether substr is within s case-insensitive.
+func NoCaseContains(s, substr string) bool {
+	s = strings.ToLower(s)
+	substr = strings.ToLower(substr)
+	return strings.Contains(s, substr)
 }

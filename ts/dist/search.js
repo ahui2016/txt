@@ -1,7 +1,7 @@
 // 采用受 Mithril 启发的基于 jQuery 实现的极简框架 https://github.com/ahui2016/mj.js
 import { m, cc, span, appendToList } from "./mj.js";
 import * as util from "./util.js";
-import { CreateCopyComp } from "./txtmsg-item.js";
+import { CreateCopyComp, MsgItem } from "./txtmsg-item.js";
 const Alerts = util.CreateAlerts();
 const Loading = util.CreateLoading("center");
 const TextForCopy = CreateCopyComp();
@@ -23,7 +23,7 @@ const AliasesArea = cc("div", {
     ],
 });
 function toggleAlias(e) {
-    e.preventDefault();
+    e === null || e === void 0 ? void 0 : e.preventDefault();
     AliasList.elem().toggle();
     AliasShowBtn.elem().toggle();
     AliasHideBtn.elem().toggle();
@@ -32,27 +32,46 @@ const MsgList = cc("div");
 const SearchInput = util.create_input();
 const SearchBtn = cc("button", { text: "Search" });
 const FormAlerts = util.CreateAlerts();
+var firstSearch = true;
 const Form = cc("form", {
     children: [
-        util.create_item(SearchInput, "Search text", "", 'mb-1'),
+        util.create_item(SearchInput, "Search text", "", "mb-1"),
         m(FormAlerts),
         m("div")
             .addClass("text-right")
             .append(m(SearchBtn).on("click", (e) => {
             e.preventDefault();
+            if (firstSearch) {
+                firstSearch = false;
+                toggleAlias();
+            }
+            const body = {
+                keyword: util.val(SearchInput, "trim"),
+                buckets: [],
+            };
+            FormAlerts.insert("primary", `Searching [${body.keyword}]...`);
             util.ajax({
                 method: "POST",
                 url: "/api/search",
                 alerts: FormAlerts,
                 buttonID: SearchBtn.id,
-                body: { msg: util.val(SearchInput, "trim") },
-            }, () => {
-                // success
+                contentType: "json",
+                body: body,
+            }, (resp) => {
+                const items = resp;
+                if (items && items.length > 0) {
+                    FormAlerts.insert("success", "Found " + items.length + " items.");
+                    MsgList.elem().empty();
+                    appendToList(MsgList, items.map(MsgItem));
+                }
+                else {
+                    FormAlerts.insert("danger", "No items found.");
+                }
             });
         })),
     ],
 });
-$("#root").append(m(NaviBar).addClass("my-5"), m(Loading).addClass("my-5"), m(Form).hide(), m(Alerts), m(AliasesArea).hide(), m(MsgList).addClass("mb-5"), m("div").text(".").addClass("Footer"), m(TextForCopy).hide());
+$("#root").append(m(NaviBar).addClass("my-5"), m(Loading).addClass("my-5"), m(Form).hide(), m(Alerts), m(MsgList).addClass("mb-5"), m(AliasesArea).addClass("my-5").hide(), m("div").text(".").addClass("Footer"), m(TextForCopy).hide());
 init();
 function init() {
     getAllAliases();
@@ -60,7 +79,7 @@ function init() {
 function AliasItem(alias) {
     return cc("li", {
         children: [
-            span(`[${alias.MsgID}]`).addClass('text-grey mr-2'),
+            span(`[${alias.MsgID}]`).addClass("text-grey mr-2"),
             util.LinkElem("/public/edit.html?id=" + alias.MsgID, {
                 text: alias.ID,
                 blank: true,

@@ -34,8 +34,8 @@ const AliasesArea = cc("div", {
   ],
 });
 
-function toggleAlias(e: JQuery.ClickEvent): void {
-  e.preventDefault();
+function toggleAlias(e?: JQuery.ClickEvent): void {
+  e?.preventDefault();
   AliasList.elem().toggle();
   AliasShowBtn.elem().toggle();
   AliasHideBtn.elem().toggle();
@@ -45,27 +45,49 @@ const MsgList = cc("div");
 
 const SearchInput = util.create_input();
 const SearchBtn = cc("button", { text: "Search" });
-const FormAlerts = util.CreateAlerts();
+const SearchAlerts = util.CreateAlerts(2);
+
+var firstSearch = true;
 
 const Form = cc("form", {
   children: [
-    util.create_item(SearchInput, "Search text", "", 'mb-1'),
-    m(FormAlerts),
+    util.create_item(SearchInput, "Search text", "", "mb-1"),
+    m(SearchAlerts),
     m("div")
       .addClass("text-right")
       .append(
         m(SearchBtn).on("click", (e) => {
           e.preventDefault();
+          if (firstSearch) {
+            firstSearch = false;
+            toggleAlias();
+          }
+          const body = {
+            keyword: util.val(SearchInput, "trim"),
+            buckets: [],
+          };
+          SearchAlerts.insert("primary", `Searching [${body.keyword}]...`);
           util.ajax(
             {
               method: "POST",
               url: "/api/search",
-              alerts: FormAlerts,
+              alerts: SearchAlerts,
               buttonID: SearchBtn.id,
-              body: { msg: util.val(SearchInput, "trim") },
+              contentType: "json",
+              body: body,
             },
-            () => {
-              // success
+            (resp) => {
+              const items = resp as TxtMsg[];
+              if (items && items.length > 0) {
+                SearchAlerts.insert(
+                  "success",
+                  "Found " + items.length + " items."
+                );
+                MsgList.elem().empty();
+                appendToList(MsgList, items.map(MsgItem));
+              } else {
+                SearchAlerts.insert("danger", "No items found.");
+              }
             }
           );
         })
@@ -78,8 +100,8 @@ $("#root").append(
   m(Loading).addClass("my-5"),
   m(Form).hide(),
   m(Alerts),
-  m(AliasesArea).hide(),
   m(MsgList).addClass("mb-5"),
+  m(AliasesArea).addClass("my-5").hide(),
   m("div").text(".").addClass("Footer"),
   m(TextForCopy).hide()
 );
@@ -93,7 +115,7 @@ function init() {
 function AliasItem(alias: Alias): mjComponent {
   return cc("li", {
     children: [
-      span(`[${alias.MsgID}]`).addClass('text-grey mr-2'),
+      span(`[${alias.MsgID}]`).addClass("text-grey mr-2"),
       util.LinkElem("/public/edit.html?id=" + alias.MsgID, {
         text: alias.ID,
         blank: true,

@@ -84,6 +84,7 @@ func main() {
 		api.POST("/update-config", updateConfig)
 		api.POST("/get-more-items", getMoreItems)
 		api.GET("/get-all-aliases", getAliasesHandler)
+		api.POST("/search", searchHandler)
 	}
 
 	if err := r.Run(*addr); err != nil {

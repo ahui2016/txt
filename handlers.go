@@ -290,3 +290,19 @@ func getAliasesHandler(c *gin.Context) {
 	}
 	c.JSON(OK, aliases)
 }
+
+func searchHandler(c *gin.Context) {
+	type form struct {
+		Keyword string   `form:"keyword" binding:"required"`
+		Buckets []string `form:"buckets"`
+	}
+	var f form
+	if BindCheck(c, &f) {
+		return
+	}
+	items, err := db.SearchTxtMsg(f.Keyword, f.Buckets)
+	if checkErr(c, err) {
+		return
+	}
+	c.JSON(OK, items)
+}

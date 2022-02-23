@@ -277,3 +277,38 @@ func (db *DB) GetAllAliases() (aliases []model.Alias, err error) {
 	})
 	return aliases, err
 }
+
+func bucketSearch(bucket *bolt.Bucket, keyword string) (items []TxtMsg, err error) {
+	err = bucket.ForEach(func(k, v []byte) error {
+		tm, err := model.UnmarshalTxtMsg(v)
+		if err != nil {
+			return err
+		}
+		if util.NoCaseContains(tm.Msg, keyword) {
+			items = append(items, tm)
+		}
+		return nil
+	})
+	return
+}
+
+func (db *DB) SearchTxtMsg(keyword string, buckets []string) (items []TxtMsg, err error) {
+	if len(buckets) == 0 {
+		buckets = []string{temp_bucket, perm_bucket}
+	}
+	err = db.DB.View(func(tx *bolt.Tx) error {
+		for _, bucket := range buckets {
+			if bucket != temp_bucket && bucket != perm_bucket {
+				return fmt.Errorf("unknown bucket: %s", bucket)
+			}
+			b := tx.Bucket([]byte(bucket))
+			arr, err := bucketSearch(b, keyword)
+			if err != nil {
+				return err
+			}
+			items = append(items, arr...)
+		}
+		return nil
+	})
+	return
+}
