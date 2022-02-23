@@ -4,7 +4,6 @@ import * as util from "./util.js";
 const FormAlerts = util.CreateAlerts();
 const footerElem = util.CreateFooter();
 const NaviBar = cc("div", {
-    classes: "my-5",
     children: [
         util.LinkElem("/", { text: "Home" }),
         span(" .. "),
@@ -138,7 +137,7 @@ const PwdForm = cc("form", {
         }),
     ],
 });
-$("#root").append(m(NaviBar), aboutPage.addClass("my-3"), aboutSecretKey, m(Form), m(CurrentKeyArea).addClass("mb-5").hide(), aboutPassword.addClass("mt-5"), m(PwdForm), footerElem);
+$("#root").append(m(NaviBar).addClass("my-5"), aboutPage.addClass("my-3"), aboutSecretKey, m(Form), m(CurrentKeyArea).addClass("mb-5").hide(), aboutPassword.addClass("mt-5"), m(PwdForm), footerElem);
 init();
 function init() {
     $("title").text("Password .. txt-online");

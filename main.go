@@ -83,6 +83,7 @@ func main() {
 		api.GET("/get-config", getConfig)
 		api.POST("/update-config", updateConfig)
 		api.POST("/get-more-items", getMoreItems)
+		api.GET("/get-all-aliases", getAliasesHandler)
 	}
 
 	if err := r.Run(*addr); err != nil {

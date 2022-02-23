@@ -263,3 +263,17 @@ func (db *DB) Edit(form model.EditForm) error {
 	})
 	return err
 }
+
+func (db *DB) GetAllAliases() (aliases []model.Alias, err error) {
+	err = db.DB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(alias_bucket))
+		return b.ForEach(func(k, v []byte) error {
+			aliases = append(aliases, model.Alias{
+				ID:    string(k),
+				MsgID: string(v),
+			})
+			return nil
+		})
+	})
+	return aliases, err
+}

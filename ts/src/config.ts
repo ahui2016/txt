@@ -14,6 +14,8 @@ const NaviBar = cc("div", {
       text: "Sign-in/out",
       title: "登入/登出",
     }),
+    span(" .. "),
+    util.LinkElem("/public/secret-key.html", { text: "Password" }),
     span(" .. Config"),
   ],
 });

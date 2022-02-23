@@ -11,14 +11,16 @@ const titleArea = m("div")
     .append(m("h1").text("txt online"));
 const GotoSignIn = util.CreateGotoSignIn();
 const NaviBar = cc("div", {
-    classes: "my-5",
+    classes: "text-center",
     children: [
+        util.LinkElem("/public/search.html", { text: "Search", title: "查找" }),
+        span(" | "),
         util.LinkElem("/public/temp.html", { text: "Temp", title: "暂存消息" }),
-        span(" .. "),
-        util.LinkElem("/public/perm.html", { text: "Perm", title: "永久休息" }),
-        span(" .. "),
+        span(" | "),
+        util.LinkElem("/public/perm.html", { text: "Perm", title: "永久消息" }),
+        span(" | "),
         util.LinkElem("/public/alias.html", { text: "Alias", title: "别名" }),
-        span(" .. "),
+        span(" | "),
         util.LinkElem("/public/config.html", { text: "Config", title: "设定" }),
     ],
 });
@@ -28,7 +30,6 @@ const SendBtn = cc("button", { text: "Send" });
 const FormAlerts = util.CreateAlerts();
 const Form = cc("form", {
     children: [
-        m(NaviBar),
         m(MsgInput)
             .addClass("form-textinput form-textinput-fat")
             .attr({ placeholder: "New message" }),
@@ -59,7 +60,7 @@ const Form = cc("form", {
         })),
     ],
 });
-$("#root").append(titleArea, m(Loading).addClass("my-3"), m(Alerts), m(GotoSignIn).addClass("my-3").hide(), m(Form).hide(), m(MsgList).addClass("mb-5"), footerElem.hide(), m(TextForCopy).hide());
+$("#root").append(titleArea, m(NaviBar).addClass("my-5"), m(Loading).addClass("my-5"), m(Alerts), m(GotoSignIn).addClass("my-3").hide(), m(Form).hide(), m(MsgList).addClass("mb-5"), footerElem.hide(), m(TextForCopy).hide());
 init();
 function init() {
     checkSignIn();

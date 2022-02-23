@@ -282,3 +282,11 @@ func updateConfig(c *gin.Context) {
 	}
 	c.JSON(OK, Text{ignore})
 }
+
+func getAliasesHandler(c *gin.Context) {
+	aliases, err := db.GetAllAliases()
+	if checkErr(c, err) {
+		return
+	}
+	c.JSON(OK, aliases)
+}
