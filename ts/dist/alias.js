@@ -11,9 +11,9 @@ const NaviBar = cc("div", {
     children: [
         util.LinkElem("/public/index.html", { text: "Home" }),
         span(" .. "),
-        util.LinkElem("/public/perm.html", { text: "Perm" }),
-        span(" .. "),
         util.LinkElem("/public/temp.html", { text: "Temp" }),
+        span(" .. "),
+        util.LinkElem("/public/perm.html", { text: "Perm" }),
         span(" .. Aliases (有别名的消息)"),
     ],
 });

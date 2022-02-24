@@ -9,7 +9,6 @@ interface Alias {
 }
 
 const Alerts = util.CreateAlerts();
-const Loading = util.CreateLoading("center");
 const TextForCopy = CreateCopyComp();
 
 const NaviBar = cc("div", {
@@ -20,6 +19,7 @@ const NaviBar = cc("div", {
 const AliasList = cc("ul");
 const AliasShowBtn = cc("a", { attr: { href: "#" }, text: "(show)" });
 const AliasHideBtn = cc("a", { attr: { href: "#" }, text: "(hide)" });
+const Loading = util.CreateLoading();
 const AliasesArea = cc("div", {
   children: [
     m("h4").text("Aliases").addClass("mb-0"),
@@ -31,14 +31,20 @@ const AliasesArea = cc("div", {
         m(AliasHideBtn).on("click", toggleAlias)
       ),
     m(AliasList),
+    m(Loading),
   ],
 });
 
-function toggleAlias(e?: JQuery.ClickEvent): void {
+function toggleAlias(e: JQuery.ClickEvent): void {
   e?.preventDefault();
   AliasList.elem().toggle();
   AliasShowBtn.elem().toggle();
   AliasHideBtn.elem().toggle();
+}
+function hideAlias(): void {
+  AliasList.hide();
+  AliasShowBtn.show();
+  AliasHideBtn.hide();
 }
 
 const MsgList = cc("div");
@@ -58,14 +64,14 @@ const Form = cc("form", {
       .append(
         m(SearchBtn).on("click", (e) => {
           e.preventDefault();
-          if (firstSearch) {
-            firstSearch = false;
-            toggleAlias();
-          }
           const body = {
             keyword: util.val(SearchInput, "trim"),
             buckets: [],
           };
+          if (!body.keyword) {
+            util.focus(SearchInput);
+            return;
+          }
           SearchAlerts.insert("primary", `Searching [${body.keyword}]...`);
           util.ajax(
             {
@@ -79,11 +85,16 @@ const Form = cc("form", {
             (resp) => {
               const items = resp as TxtMsg[];
               if (items && items.length > 0) {
+                if (firstSearch) {
+                  firstSearch = false;
+                  hideAlias();
+                }
                 SearchAlerts.insert(
                   "success",
                   "Found " + items.length + " items."
                 );
                 MsgList.elem().empty();
+                items.sort((a, b) => b.ID.localeCompare(a.ID));
                 appendToList(MsgList, items.map(MsgItem));
               } else {
                 SearchAlerts.insert("danger", "No items found.");
@@ -97,11 +108,10 @@ const Form = cc("form", {
 
 $("#root").append(
   m(NaviBar).addClass("my-5"),
-  m(Loading).addClass("my-5"),
-  m(Form).hide(),
+  m(Form),
   m(Alerts),
   m(MsgList).addClass("mb-5"),
-  m(AliasesArea).addClass("my-5").hide(),
+  m(AliasesArea).addClass("my-5"),
   m("div").text(".").addClass("Footer"),
   m(TextForCopy).hide()
 );
@@ -110,6 +120,26 @@ init();
 
 function init() {
   getAllAliases();
+}
+
+function getAllAliases(): void {
+  util.ajax(
+    { method: "GET", url: "/api/get-all-aliases", alerts: Alerts },
+    (resp) => {
+      const aliases = resp as Alias[];
+      if (aliases && aliases.length > 0) {
+        aliases.sort((a, b) => b.MsgID.localeCompare(a.MsgID));
+        appendToList(AliasList, aliases.map(AliasItem));
+      } else {
+        AliasesArea.elem().hide();
+      }
+    },
+    undefined,
+    () => {
+      Loading.hide();
+      util.focus(SearchInput);
+    }
+  );
 }
 
 function AliasItem(alias: Alias): mjComponent {
@@ -122,26 +152,4 @@ function AliasItem(alias: Alias): mjComponent {
       }),
     ],
   });
-}
-
-function getAllAliases(): void {
-  util.ajax(
-    { method: "GET", url: "/api/get-all-aliases", alerts: Alerts },
-    (resp) => {
-      const aliases = resp as Alias[];
-      aliases.sort((a, b) => b.MsgID.localeCompare(a.MsgID));
-      Form.show();
-      AliasesArea.show();
-      if (aliases && aliases.length > 0) {
-        appendToList(AliasList, aliases.map(AliasItem));
-      } else {
-        AliasList.elem().append(m("li").text("No aliases found."));
-      }
-    },
-    undefined,
-    () => {
-      Loading.hide();
-      util.focus(SearchInput);
-    }
-  );
 }
