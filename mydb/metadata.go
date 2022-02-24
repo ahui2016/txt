@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 
 	"github.com/ahui2016/txt/model"
@@ -416,6 +417,10 @@ func txChangeAlias(tx *bolt.Tx, oldAlias, newAlias string) error {
 
 // txEditAlias 专用于 DB.Edit(model.EditForm)
 func txEditAlias(tx *bolt.Tx, oldAlias, newAlias, id string) error {
+	// 别名不可采用“以 T 或 P 开头紧跟数字”的形式（要避免与 index 冲突）
+	if err := checkAlias(newAlias); err != nil {
+		return err
+	}
 	// 从有别名变成无别名（即，删除别名）
 	if oldAlias != "" && newAlias == "" {
 		return txDeleteAlias(tx, oldAlias)
@@ -429,5 +434,20 @@ func txEditAlias(tx *bolt.Tx, oldAlias, newAlias, id string) error {
 		return txChangeAlias(tx, oldAlias, newAlias)
 	}
 	// 新旧别名相同
+	return nil
+}
+
+func checkAlias(alias string) error {
+	if alias == "" {
+		return nil
+	}
+	alias = strings.ToUpper(alias)
+	if alias[0] != 'T' && alias[0] != 'P' {
+		return nil
+	}
+	alias = alias[1:]
+	if _, err := strconv.Atoi(alias); err == nil {
+		return fmt.Errorf("别名不可采用“以 T 或 P 开头紧跟数字”的形式")
+	}
 	return nil
 }

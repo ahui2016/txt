@@ -367,7 +367,7 @@ export function CreateFooter(): mjElement {
   return m("div")
     .addClass("Footer")
     .append(
-      span("version: 2022-02-12"),
+      span("version: 2022-02-24"),
       m("br"),
       LinkElem("https://github.com/ahui2016/txt", { blank: true }).addClass(
         "FooterLink"
