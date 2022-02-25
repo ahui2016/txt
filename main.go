@@ -87,6 +87,21 @@ func main() {
 		api.POST("/search", searchHandler)
 	}
 
+	cli := r.Group("/cli", Sleep(), CliCheckKey())
+	{
+		cli.POST("/add", addTxtMsg)
+		cli.GET("/recent-items", getRecentItems)
+		cli.POST("/toggle-category", toggleCatHandler)
+		cli.POST("/delete", deleteHandler)
+		cli.POST("/get-by-id", getByID)
+		cli.POST("/edit", editHandler)
+		cli.GET("/get-config", getConfig)
+		cli.POST("/update-config", updateConfig)
+		cli.POST("/get-more-items", getMoreItems)
+		cli.GET("/get-all-aliases", getAliasesHandler)
+		cli.POST("/search", searchHandler)
+	}
+
 	if err := r.Run(*addr); err != nil {
 		log.Fatal(err)
 	}

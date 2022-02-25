@@ -51,7 +51,7 @@ CurrentKeyArea.init = function (key: util.CurrentKey) {
     );
   } else {
     self.append(
-      m("div").append(span("状态: "), span("已失效").addClass("alert-danger"))
+      m("div").append(span("状态: "), span("已过期").addClass("alert-danger"))
     );
     self.append(
       m("div").addClass("form-text").text(`该密钥已于 ${keyExpires} 作废`)
