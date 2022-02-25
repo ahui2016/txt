@@ -174,6 +174,38 @@ func (db *DB) ToggleCat(tm TxtMsg) error {
 	return db.updateAllIndex()
 }
 
+func (db *DB) CliGetTxtMsg(bucket string, index, limit int) (items []TxtMsg, err error) {
+	if index <= 1 {
+		index = 1
+	}
+	err = db.DB.View(func(tx *bolt.Tx) error {
+		c := tx.Bucket([]byte(bucket)).Cursor()
+		for k, v := c.Last(); k != nil; k, v = c.Prev() {
+			tm := TxtMsg{}
+			if err := msgpack.Unmarshal(v, &tm); err != nil {
+				return err
+			}
+			if tm.Index == index {
+				items = append(items, tm)
+				break
+			}
+		}
+		for i := 1; i < limit; i++ {
+			k, v := c.Prev()
+			if k == nil {
+				break
+			}
+			tm := TxtMsg{}
+			if err := msgpack.Unmarshal(v, &tm); err != nil {
+				return err
+			}
+			items = append(items, tm)
+		}
+		return nil
+	})
+	return
+}
+
 func (db *DB) getTxtMsgLimit(bucket, start string, limit int) (items []TxtMsg, err error) {
 	i := 0
 	err = db.DB.View(func(tx *bolt.Tx) error {
@@ -224,8 +256,7 @@ func (db *DB) getAliasLimit(start string, limit int) (items []TxtMsg, err error)
 	return
 }
 
-func (db *DB) GetRecentItems() ([]TxtMsg, error) {
-	limit := 15
+func (db *DB) GetRecentItems(limit int) ([]TxtMsg, error) {
 	tempItems, err := db.getTxtMsgLimit(temp_bucket, "", limit)
 	if err != nil {
 		return nil, err

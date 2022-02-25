@@ -194,7 +194,7 @@ func addTxtMsg(c *gin.Context) {
 }
 
 func getRecentItems(c *gin.Context) {
-	items, err := db.GetRecentItems()
+	items, err := db.GetRecentItems(15)
 	if checkErr(c, err) {
 		return
 	}
@@ -205,13 +205,30 @@ func getMoreItems(c *gin.Context) {
 	type form struct {
 		Bucket string `form:"bucket" binding:"required"`
 		Start  string `form:"start"`
-		Limit  int    `form:"limit" binding:"required"`
+		Limit  int    `form:"limit"`
 	}
 	var f form
 	if BindCheck(c, &f) {
 		return
 	}
 	items, err := db.GetMoreItems(f.Bucket, f.Start, f.Limit)
+	if checkErr(c, err) {
+		return
+	}
+	c.JSON(OK, items)
+}
+
+func cliGetMoreItems(c *gin.Context) {
+	type form struct {
+		Bucket string `form:"bucket" binding:"required"`
+		Index  int    `form:"index"`
+		Limit  int    `form:"limit" binding:"required"`
+	}
+	var f form
+	if BindCheck(c, &f) {
+		return
+	}
+	items, err := db.CliGetTxtMsg(f.Bucket, f.Index, f.Limit)
 	if checkErr(c, err) {
 		return
 	}

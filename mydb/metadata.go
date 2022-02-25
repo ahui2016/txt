@@ -80,32 +80,6 @@ func getBucketName(tm TxtMsg) string {
 	return perm_bucket
 }
 
-// func putBytes(bucket *bolt.Bucket, key string, v []byte) error {
-// 	return bucket.Put([]byte(key), v)
-// }
-// func putString(bucket *bolt.Bucket, key string, v string) error {
-// 	return bucket.Put([]byte(key), []byte(v))
-// }
-
-// func txPutBytes(tx *bolt.Tx, bucket, key string, v []byte) error {
-// 	b := tx.Bucket([]byte(bucket))
-// 	return b.Put([]byte(key), v)
-// }
-
-// func (db *DB) getInt64(bucket, key string) (n int64, err error) {
-// 	data, err := db.getBytes(bucket, key)
-// 	if err != nil {
-// 		return
-// 	}
-// 	err = msgpack.Unmarshal(data, &n)
-// 	return
-// }
-
-// func txPutString(tx *bolt.Tx, bucket, key string, v string) error {
-// 	b := tx.Bucket([]byte(bucket))
-// 	return b.Put([]byte(key), []byte(v))
-// }
-
 func bucketPutObject(bucket *bolt.Bucket, key string, v interface{}) error {
 	data, err := msgpack.Marshal(v)
 	if err != nil {
