@@ -92,7 +92,7 @@ func main() {
 		cli.POST("/add", addTxtMsg)
 		cli.POST("/toggle-category", toggleCatHandler)
 		cli.POST("/delete", deleteHandler)
-		cli.POST("/get-by-id", getByID)
+		cli.POST("/get-by-alias-index", getByAliasIndex)
 		cli.POST("/edit", editHandler)
 		cli.GET("/get-config", getConfig)
 		cli.POST("/update-config", updateConfig)

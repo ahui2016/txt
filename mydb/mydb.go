@@ -2,6 +2,8 @@ package mydb
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/ahui2016/txt/model"
@@ -172,6 +174,29 @@ func (db *DB) ToggleCat(tm TxtMsg) error {
 	// 注意：由于 db.updateAllIndex 涉及 bucket.Stats().KeyN,
 	// 上面的删除/插入必须 commit 之后, bucket.Stats() 才会更新。
 	return db.updateAllIndex()
+}
+
+func (db *DB) GetByAliasIndex(a_or_i string) (tm TxtMsg, err error) {
+	err = db.DB.View(func(tx *bolt.Tx) error {
+		if err = checkAlias(a_or_i); err == nil {
+			// 此时, a_or_i 是 alias
+			tm, err = txGetByAlias(tx, a_or_i)
+			return err
+		}
+
+		// 此时, a_or_i 是 index
+		index := strings.ToUpper(a_or_i)
+		bucket := temp_bucket
+		// index 的头部要么是 T, 要么是 P
+		if index[0] == 'P' {
+			bucket = perm_bucket
+		}
+		// index 的尾部是数字
+		i, _ := strconv.Atoi(index[1:])
+		tm, err = txGetByIndex(tx, bucket, i)
+		return err
+	})
+	return
 }
 
 func (db *DB) CliGetTxtMsg(bucket string, index, limit int) (items []TxtMsg, err error) {

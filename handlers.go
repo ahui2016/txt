@@ -235,6 +235,21 @@ func cliGetMoreItems(c *gin.Context) {
 	c.JSON(OK, items)
 }
 
+func getByAliasIndex(c *gin.Context) {
+	type form struct {
+		A_or_I string `form:"a_or_i" binding:"required"`
+	}
+	var f form
+	if BindCheck(c, &f) {
+		return
+	}
+	tm, err := db.GetByAliasIndex(f.A_or_I)
+	if checkErr(c, err) {
+		return
+	}
+	c.JSON(OK, tm)
+}
+
 func toggleCatHandler(c *gin.Context) {
 	var f idForm
 	if BindCheck(c, &f) {

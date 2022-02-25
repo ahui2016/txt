@@ -167,19 +167,29 @@ func txGetByID(tx *bolt.Tx, id string) (tm TxtMsg, err error) {
 	return
 }
 
-// func (db *DB) bucketGetString(bucket *bolt.Bucket, key string) (string, error) {
-// 	v, err := db.getBytes(bucket, key)
-// 	return string(v), err
-// }
+func txGetByAlias(tx *bolt.Tx, alias string) (tm TxtMsg, err error) {
+	id, err := txGetBytes(tx, alias_bucket, alias)
+	if err != nil && err != ErrNoResult {
+		return
+	}
+	if err == ErrNoResult {
+		return tm, ErrNoResult
+	}
+	return txGetByID(tx, string(id))
+}
 
-// func bucketGetTxtMsg(bucket *bolt.Bucket, key []byte) (tm TxtMsg, err error) {
-// 	data := bucket.Get([]byte(key))
-// 	if data == nil {
-// 		return tm, ErrNoResult
-// 	}
-// 	err = msgpack.Unmarshal(data, &tm)
-// 	return
-// }
+func txGetByIndex(tx *bolt.Tx, bucket string, index int) (tm TxtMsg, err error) {
+	c := tx.Bucket([]byte(bucket)).Cursor()
+	for k, v := c.Last(); k != nil; k, v = c.Prev() {
+		if err = msgpack.Unmarshal(v, &tm); err != nil {
+			return
+		}
+		if tm.Index == index {
+			return
+		}
+	}
+	return tm, ErrNoResult
+}
 
 func (db *DB) getConfig() (config Config, err error) {
 	data, err := db.getBytes(config_bucket, config_key)
