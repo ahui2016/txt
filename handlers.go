@@ -235,11 +235,12 @@ func cliGetMoreItems(c *gin.Context) {
 	c.JSON(OK, items)
 }
 
+type AliasIndexForm struct {
+	A_or_I string `form:"a_or_i" binding:"required"`
+}
+
 func getByAliasIndex(c *gin.Context) {
-	type form struct {
-		A_or_I string `form:"a_or_i" binding:"required"`
-	}
-	var f form
+	var f AliasIndexForm
 	if BindCheck(c, &f) {
 		return
 	}
@@ -259,7 +260,25 @@ func toggleCatHandler(c *gin.Context) {
 	if checkErr(c, err) {
 		return
 	}
-	checkErr(c, db.ToggleCat(tm))
+	_, err = db.ToggleCat(tm)
+	checkErr(c, err)
+}
+
+func cliToggleCat(c *gin.Context) {
+	var f AliasIndexForm
+	if BindCheck(c, &f) {
+		return
+	}
+	tm, err := db.GetByAliasIndex(f.A_or_I)
+	if checkErr(c, err) {
+		return
+	}
+	after, err := db.ToggleCat(tm)
+	if checkErr(c, err) {
+		return
+	}
+
+	c.JSON(OK, after)
 }
 
 func deleteHandler(c *gin.Context) {

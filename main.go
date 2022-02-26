@@ -90,14 +90,13 @@ func main() {
 	cli := r.Group("/cli", Sleep(), CliCheckKey())
 	{
 		cli.POST("/add", addTxtMsg)
-		cli.POST("/toggle-category", toggleCatHandler)
+		cli.POST("/toggle-category", cliToggleCat)
 		cli.POST("/delete", deleteHandler)
-		cli.POST("/get-by-alias-index", getByAliasIndex)
+		cli.POST("/get-by-a-or-i", getByAliasIndex)
 		cli.POST("/edit", editHandler)
-		cli.GET("/get-config", getConfig)
 		cli.POST("/update-config", updateConfig)
 		cli.POST("/get-more-items", cliGetMoreItems)
-		cli.GET("/get-all-aliases", getAliasesHandler)
+		cli.POST("/get-all-aliases", getAliasesHandler)
 		cli.POST("/search", searchHandler)
 	}
 

@@ -138,10 +138,10 @@ func (db *DB) getLastTempMsg() (tm TxtMsg, err error) {
 // ToggleCat 在暂存消息与永久消息之间转换，为了让转换后的消息排在前面，
 // 转换时会改变 ID, 又由于 ID 同时也是创建日期，因此相当于同时改变创建日期。
 // 注意：如有 Alias 要同步更新 ID.
-func (db *DB) ToggleCat(tm TxtMsg) error {
+func (db *DB) ToggleCat(tm TxtMsg) (after TxtMsg, err error) {
 	var srcBucket, targetBucket *bolt.Bucket
 	var targetCat model.Category
-	if err := db.DB.Update(func(tx *bolt.Tx) error {
+	err = db.DB.Update(func(tx *bolt.Tx) error {
 		if tm.Cat == CatTemp {
 			srcBucket = tx.Bucket([]byte(temp_bucket))
 			targetBucket = tx.Bucket([]byte(perm_bucket))
@@ -151,29 +151,30 @@ func (db *DB) ToggleCat(tm TxtMsg) error {
 			targetBucket = tx.Bucket([]byte(temp_bucket))
 			targetCat = CatTemp
 		}
-		srcID := []byte(tm.ID)
-		targetID, err := db.newDateID()
+		after = tm
+		after.ID, err = db.newDateID()
 		if err != nil {
 			return err
 		}
-		tm.ID = targetID
-		tm.Cat = targetCat
-		if err := bucketPutObject(targetBucket, tm.ID, tm); err != nil {
+		after.Cat = targetCat
+		if err := bucketPutObject(targetBucket, after.ID, after); err != nil {
 			return err
 		}
-		if err := srcBucket.Delete(srcID); err != nil {
+		if err := srcBucket.Delete([]byte(tm.ID)); err != nil {
 			return err
 		}
-		if tm.Alias != "" {
-			err = txPutAlias(tx, tm.Alias, targetID, true)
+		if after.Alias != "" {
+			err = txPutAlias(tx, after.Alias, after.ID, true)
 		}
 		return err
-	}); err != nil {
-		return err
+	})
+	if err != nil {
+		return
 	}
 	// 注意：由于 db.updateAllIndex 涉及 bucket.Stats().KeyN,
 	// 上面的删除/插入必须 commit 之后, bucket.Stats() 才会更新。
-	return db.updateAllIndex()
+	err = db.updateAllIndex()
+	return
 }
 
 func (db *DB) GetByAliasIndex(a_or_i string) (tm TxtMsg, err error) {
