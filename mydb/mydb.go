@@ -321,6 +321,21 @@ func (db *DB) Edit(form model.EditForm) error {
 	return err
 }
 
+func (db *DB) UpdateAlias(a_or_i, newAlias string) error {
+	tm, err := db.GetByAliasIndex(a_or_i)
+	if err != nil {
+		return err
+	}
+	err = db.DB.Update(func(tx *bolt.Tx) error {
+		if err := txEditAlias(tx, tm.Alias, newAlias, tm.ID); err != nil {
+			return err
+		}
+		tm.Alias = newAlias
+		return txPutObject(tx, getBucketName(tm), tm.ID, tm)
+	})
+	return err
+}
+
 func (db *DB) GetAllAliases() (aliases []model.Alias, err error) {
 	err = db.DB.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(alias_bucket))

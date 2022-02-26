@@ -399,7 +399,6 @@ func txChangeAlias(tx *bolt.Tx, oldAlias, newAlias string) error {
 	return b.Delete([]byte(oldAlias))
 }
 
-// txEditAlias 专用于 DB.Edit(model.EditForm)
 func txEditAlias(tx *bolt.Tx, oldAlias, newAlias, id string) error {
 	// 别名不可采用“以 T 或 P 开头紧跟数字”的形式（要避免与 index 冲突）
 	if err := checkAlias(newAlias); err != nil {

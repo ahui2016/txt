@@ -314,6 +314,18 @@ func editHandler(c *gin.Context) {
 	checkErr(c, err)
 }
 
+func cliSetAlias(c *gin.Context) {
+	type form struct {
+		A_or_I string `form:"a_or_i" binding:"required"`
+		Alias  string `form:"alias"`
+	}
+	var f form
+	if BindCheck(c, &f) {
+		return
+	}
+	checkErr(c, db.UpdateAlias(f.A_or_I, f.Alias))
+}
+
 func getConfig(c *gin.Context) {
 	c.JSON(OK, db.Config.ToConfigForm())
 }
