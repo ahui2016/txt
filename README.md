@@ -47,12 +47,26 @@ txt 最大的特色是支持纯命令行，方便在终端上使用。比如有�
 
 直接下载一个文件，绿色免安装，通过点击或命令行启动程序即可使用。(下载 ➡ [Releases](https://github.com/ahui2016/txt/releases))
 
+### Linux 安装
+
+在上面给出的 Releases 页面下载压缩文件 txt_linux_amd64.tar.gz, 使用命令 `tar -xvf txt_linux_amd64.tar.gz` 解压缩后得到文件 txt_linux_amd64, 使用 `chmod +x txt_linux_amd64` 添加执行权限，然后就可以执行：
+
+```sh
+$ ./txt_linux_amd64
+```
+
+### MacOS 安装
+
+在上面给出的 Releases 页面下载压缩文件 txt_MacOS 开头的文件，解压缩后得到一个文件，参考上面 Linux 的方法使用 chmod 命令添加执行权限。由于安全原因，正常方法无法执行文件，可按住 control 同时点击文件，选择打开即可。
+
+### 本地访问
+
 默认端口是 8000, 启动程序后用浏览器访问 http://127.0.0.1:8000 即可打开程序界面。
 
 可使用 `-addr` 参数修改端口，例如:
 
 ```sh
-mima.exe -addr 127.0.0.1:8080
+txt.exe -addr 127.0.0.1:8080
 ```
 
 ### 数据库
@@ -76,4 +90,4 @@ https://txt-demo.ai42.xyz (密码:abc)
 pip install txtcli
 ```
 
-详细的安装及升级方法请看 https://github.com/ahui2016/txt-cli
+txt-cli 的详细安装及使用说明请看 https://github.com/ahui2016/txt-cli
