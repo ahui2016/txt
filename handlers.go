@@ -278,6 +278,7 @@ func cliToggleCat(c *gin.Context) {
 		return
 	}
 
+	after.Index = 1
 	c.JSON(OK, after)
 }
 
