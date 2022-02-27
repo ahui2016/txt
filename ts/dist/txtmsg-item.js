@@ -59,7 +59,7 @@ export function MsgItem(item) {
                 }, () => {
                     self.elem().css({ "font-size": "small", color: "grey" });
                     self.elem().find(".ItemButtons").removeClass().hide();
-                    ItemAlerts.insert("info", "已删除。注意：全部消息的顺序号已改变，请刷新页面获取新的顺序号。");
+                    ItemAlerts.insert("info", "已删除。注意：全部消息的流水号已改变，请刷新页面获取新的流水号。");
                 });
             }), util
                 .LinkElem("#", { text: "copy" })

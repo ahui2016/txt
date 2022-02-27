@@ -94,15 +94,11 @@ func (db *DB) InsertTxtMsg(tm TxtMsg) error {
 	return db.updateIndex(temp_bucket)
 }
 
-// DeleteTxtMsg 删除 id. 注意：如有 Alias 要同步删除。
-func (db *DB) DeleteTxtMsg(id string) error {
-	tm, err := db.GetByID(id)
-	if err != nil {
-		return err
-	}
-	err = db.DB.Update(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(getBucketName(tm)))
-		if err := b.Delete([]byte(id)); err != nil {
+func (db *DB) deleteTxtMsg(tm TxtMsg) error {
+	bucket := getBucketName(tm)
+	err := db.DB.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(bucket))
+		if err := b.Delete([]byte(tm.ID)); err != nil {
 			return err
 		}
 		if tm.Alias != "" {
@@ -112,7 +108,27 @@ func (db *DB) DeleteTxtMsg(id string) error {
 		}
 		return nil
 	})
-	return err
+	if err != nil {
+		return err
+	}
+	return db.updateIndex(bucket)
+}
+
+// DeleteTxtMsg 删除 id. 注意：如有 Alias 要同步删除。
+func (db *DB) DeleteTxtMsg(id string) error {
+	tm, err := db.GetByID(id)
+	if err != nil {
+		return err
+	}
+	return db.deleteTxtMsg(tm)
+}
+
+func (db *DB) CliDeleteTxtMsg(a_or_i string) error {
+	tm, err := db.GetByAliasIndex(a_or_i)
+	if err != nil {
+		return err
+	}
+	return db.deleteTxtMsg(tm)
 }
 
 func (db *DB) GetByID(id string) (tm TxtMsg, err error) {

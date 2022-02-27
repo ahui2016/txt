@@ -28,7 +28,7 @@ CurrentKeyArea.init = function (key) {
         self.append(m("div").addClass("form-text").text(`(该密钥将于 ${keyExpires} 自动作废)`));
     }
     else {
-        self.append(m("div").append(span("状态: "), span("已失效").addClass("alert-danger")));
+        self.append(m("div").append(span("状态: "), span("已过期").addClass("alert-danger")));
         self.append(m("div").addClass("form-text").text(`该密钥已于 ${keyExpires} 作废`));
     }
 };

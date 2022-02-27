@@ -289,6 +289,14 @@ func deleteHandler(c *gin.Context) {
 	checkErr(c, db.DeleteTxtMsg(f.ID))
 }
 
+func cliDeleteHandler(c *gin.Context) {
+	var f AliasIndexForm
+	if BindCheck(c, &f) {
+		return
+	}
+	checkErr(c, db.CliDeleteTxtMsg(f.A_or_I))
+}
+
 func getByID(c *gin.Context) {
 	var f idForm
 	if BindCheck(c, &f) {
