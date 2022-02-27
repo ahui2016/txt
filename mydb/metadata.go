@@ -3,7 +3,6 @@ package mydb
 import (
 	"errors"
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 
@@ -105,8 +104,6 @@ func txLimitTemp(tx *bolt.Tx, limit int) error {
 
 	// 特殊情况优化 1. 如果 temp_bucket 中的条目数量小于 limit，则不需要删除任何条目。
 	n := bucket.Stats().KeyN
-	log.Print("temp_bucket.Stats().KeyN: ", n)
-	log.Print("limit: ", limit)
 	if n < limit {
 		return nil
 	}
@@ -115,20 +112,17 @@ func txLimitTemp(tx *bolt.Tx, limit int) error {
 	// 则只要删除最早的 1 个条目。
 	if n == limit {
 		k, _ := c.First()
-		log.Print("First key: ", k)
 		return bucket.Delete(k)
 	}
 
 	// 普通情况（无法优化的情况）
 	i := 1
 	for k, _ := c.Last(); k != nil; k, _ = c.Prev() {
-		log.Printf("i: %d, limit: %d", i, limit)
 		if i < limit {
 			i++
 			continue
 		}
 		if err := bucket.Delete(k); err != nil {
-			log.Print("Delete key: ", k)
 			return err
 		}
 	}
