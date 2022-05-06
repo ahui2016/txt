@@ -81,7 +81,7 @@ $ txt -db ./txt-db-folder
 
 ### demo (在线演示)
 
-https://txt-demo.ai42.xyz (密码:abc)
+https://txt-demo.ai42.cc (密码:abc)
 
 ### txt-cli (安装命令行工具)
 
