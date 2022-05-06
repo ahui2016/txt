@@ -52,13 +52,13 @@ func checkPwdAndIP(c *gin.Context, pwd string) (exit bool) {
 func checkKeyAndIP(c *gin.Context, secretKey string) (exit bool) {
 	ip := c.ClientIP()
 	if err := checkIPTryCount(ip); err != nil {
-		c.AbortWithStatusJSON(http.StatusForbidden, Text{err.Error()})
+		c.JSON(http.StatusForbidden, Text{err.Error()})
 		return true
 	}
 	if err := db.CheckKey(secretKey); err != nil {
 		ipTryCount[ip]++
 		ipTryCount["all"]++
-		c.AbortWithStatusJSON(http.StatusUnauthorized, Text{err.Error()})
+		c.JSON(http.StatusUnauthorized, Text{err.Error()})
 		return true
 	}
 	ipTryCount[ip] = 0
@@ -69,9 +69,11 @@ func CliCheckKey() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var form SignInForm
 		if BindCheck(c, &form) {
+			c.Abort()
 			return
 		}
 		if checkKeyAndIP(c, form.Password) {
+			c.Abort()
 			return
 		}
 		c.Next()

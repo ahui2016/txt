@@ -22,8 +22,6 @@ const (
 	perm_bucket         = "permanent-bucket"
 	alias_bucket        = "alias-bucket"
 	config_bucket       = "config-bucket"
-	txt_id_key          = "txt-id-key"
-	txt_id_prefix       = "T"
 	hour                = 60 * 60
 	day                 = 24 * hour
 	defaultKeyMaxAge    = 30 * day

@@ -84,7 +84,7 @@ func (config *Config) ToConfigForm() ConfigForm {
 // DateID 返回一个便于通过前缀筛选时间范围的字符串 id,
 // 由于精确到秒，为了避免重复，每次生成新 id 前会先暂停一秒。
 // offset 的格式是 "+8" 表示东八区(北京时间), "-5" 表示西五区(纽约时间), 依此类推。
-// 返回的 id 格式是 "2006-01-02_150405", 由于有可能用作 html 元素的 id, 因此不含空格与冒号。
+// 返回的 id 格式是 "2006-01-02_150405", 由于有可能用于 html 元素的 id, 因此不含空格与冒号。
 func DateID(offset string) (string, error) {
 	time.Sleep(time.Second)
 

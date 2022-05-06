@@ -34,7 +34,7 @@ func checkErr(c *gin.Context, err error) bool {
 // BindCheck binds an obj, returns true if err != nil.
 func BindCheck(c *gin.Context, obj interface{}) bool {
 	if err := c.ShouldBind(obj); err != nil {
-		c.AbortWithStatusJSON(400, Text{err.Error()})
+		c.JSON(400, Text{err.Error()})
 		return true
 	}
 	return false
